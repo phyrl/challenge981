@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 V0.6.6.9</title>
+<title>蘋果的考驗 V0.6.6.10</title>
 <style>
     :root { --accent: #e74c3c; --gold: #f1c40f; --bg: #0d0d0d; --cert-bg: #1a1a1a; }
     * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
@@ -134,7 +134,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-
     const firebaseConfig = {
       apiKey: "AIzaSyDoHHh-8Gm5tt_uWF4IPGIGfOTNYnAgHr4",
       authDomain: "physicsgame-rl.firebaseapp.com",
@@ -221,8 +220,10 @@
                 let rank = 1;
                 snap.forEach(doc => {
                     const data = doc.data();
-                    const dispName = data.name ? data.name.substring(0,6) : '無名';
-                    html += `<tr><td style="padding:6px 0;">${rank}</td><td>${dispName}</td><td>${data.totalTime}s</td><td>${data.difficulty}</td></tr>`;
+                    // 🌟 修正 1：名字顯示長度改為 10
+                    const dispName = data.name ? data.name.substring(0,10) : '無名';
+                    // 🌟 確保時間顯示為數字格式
+                    html += `<tr><td style="padding:6px 0;">${rank}</td><td>${dispName}</td><td>${Number(data.totalTime).toFixed(2)}s</td><td>${data.difficulty}</td></tr>`;
                     rank++;
                 });
                 html += '</table>';
@@ -368,7 +369,9 @@
             const scores = snap.docs.map(d => parseFloat(d.data().totalTime));
             if (scores.length > 0 && total < scores[0]) rankText = "牛頓接班人";
             else if (scores.length < 10 || total < scores[scores.length-1]) rankText = "物理天才";
-            await addDoc(collection(db, "physics_leaderboard"), { name, totalTime: total.toFixed(2), difficulty: currentDiff, timestamp: new Date() });
+            
+            // 🌟 修正 2：確保儲存至 Firebase 的時間格式為 Number (parseFloat)
+            await addDoc(collection(db, "physics_leaderboard"), { name, totalTime: parseFloat(total.toFixed(2)), difficulty: currentDiff, timestamp: new Date() });
         } catch(e) {}
         document.getElementById('rankLabel').innerText = rankText;
         document.getElementById('certPlayerName').innerText = name;
@@ -409,7 +412,6 @@
     };
     bindBtn('btnLeft', 'left'); bindBtn('btnRight', 'right'); bindBtn('btnFastLeft', 'left'); bindBtn('btnFastRight', 'right');
 
-    // 🌟 全螢幕觸控監聽 (左半邊 = 左, 右半邊 = 右)
     const screenTouchStart = (e) => {
         if (!isPlaying || isPaused) return;
         if (e.clientX < canvas.width / 2) {

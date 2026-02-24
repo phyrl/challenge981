@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 V0.6.6.6</title>
+<title>蘋果的考驗 V0.6.6.9</title>
 <style>
     :root { --accent: #e74c3c; --gold: #f1c40f; --bg: #0d0d0d; --cert-bg: #1a1a1a; }
     * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
@@ -77,6 +77,7 @@
         </div>
         <button class="btn-apple" onclick="window.startGame()">開始考驗</button>
         <button class="btn-apple" style="background:#34495e;" onclick="window.toggleRules()">考驗方式</button>
+        <button class="btn-apple" style="background:#2980b9;" onclick="window.toggleLeaderboard()">🏆 排行榜</button>
         <button class="btn-apple" id="menuSoundBtn" style="background:#555; padding: 10px 20px; font-size: 16px;" onclick="window.toggleSound()">🔊 音效：開啟</button>
     </div>
 
@@ -88,9 +89,18 @@
             3. 🛡️ 護盾抵消一次錯誤 (19.62+)。<br>
             4. 難度越高，接錯會重置公式進度。<br>
             5. **Shift / ◀◀** 可進行 5 倍速位移。<br>
-            6. 每關的結算時間將會包含失敗重試的總時間。
+            6. 每關的結算時間將會包含失敗重試的總時間。<br>
+            7. **手機/平板玩家可直接點擊螢幕左/右半邊進行移動。**
         </div>
         <button class="btn-apple" onclick="window.toggleRules()">返回</button>
+    </div>
+
+    <div id="leaderboardOverlay" class="overlay hidden">
+        <h2 style="color:var(--gold);">🏅 物理學霸排行榜</h2>
+        <div id="leaderboardContent" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; margin:15px 0; width:90%; max-width:340px; max-height:50vh; overflow-y:auto; font-size:15px;">
+            載入中...
+        </div>
+        <button class="btn-apple" id="lbCloseBtn" onclick="window.toggleLeaderboard()">返回</button>
     </div>
 
     <div id="transitionOverlay" class="overlay hidden">
@@ -111,7 +121,8 @@
             <div style="font-size:18px;">總時間：<span id="certTotalTime" style="color:var(--accent); font-weight:bold;"></span>s | 難度：<span id="certDiff"></span></div>
             <div style="margin-top:12px;"><img id="qrcode" src="" alt="QR" width="85" style="background:white; padding:4px; border-radius:5px;"></div>
         </div>
-        <button class="btn-apple" style="background:#34495e;" onclick="window.exitToHome()">返回主頁挑戰</button>
+        <button class="btn-apple" style="background:linear-gradient(45deg, #f09433, #bc1888);" onclick="window.copyToIG()">📋 複製成績分享 IG Story</button>
+        <button class="btn-apple" style="background:#34495e;" onclick="window.goToEndGameLeaderboard()">查看排行榜</button>
     </div>
 
     <div id="quoteOverlay" class="overlay hidden" style="justify-content:center; padding-top:0;">
@@ -144,10 +155,10 @@
     let isPlaying = false, isPaused = false, currentLevel = 0, currentCharIdx = 0, startTime, timeBonus = 0;
     let levelTimes = [0,0,0,0], objects = [], combo = 0, hasShield = false;
     let audioCtx = null, currentDiff = 0, lastSpawnedIdx = -1;
+    let endGameFlow = false; 
     const keys = { left: false, right: false, shift: false };
     const player = { x: 0, y: 0 };
 
-    // 🌟 1. 音效狀態記憶讀取
     let isMuted = localStorage.getItem('physicsGameMuted') === 'true';
     document.getElementById('soundToggle').innerText = isMuted ? "🔇" : "🔊";
     const menuBtn = document.getElementById('menuSoundBtn');
@@ -159,14 +170,13 @@
     function playSound(f, d, type = 'sine') {
         if (!audioCtx || isMuted) return;
         const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-        o.type = type; o.frequency.setValueAtTime(f + (combo * 35), audioCtx.currentTime); // 加強調音幅度
+        o.type = type; o.frequency.setValueAtTime(f + (combo * 35), audioCtx.currentTime);
         g.gain.setValueAtTime(0.05, audioCtx.currentTime); 
         g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + d);
         o.connect(g); g.connect(audioCtx.destination);
         o.start(); o.stop(audioCtx.currentTime + d);
     }
 
-    // 🌟 同步更新並存入 LocalStorage
     window.toggleSound = () => { 
         isMuted = !isMuted; 
         localStorage.setItem('physicsGameMuted', isMuted);
@@ -178,8 +188,56 @@
     window.togglePause = () => { if(!isPlaying) return; isPaused = !isPaused; document.getElementById('pauseBtn').innerText = isPaused ? "▶" : "⏸"; };
     window.toggleRules = () => document.getElementById('rulesOverlay').classList.toggle('hidden');
     
+    window.goToEndGameLeaderboard = () => {
+        document.getElementById('resultOverlay').classList.add('hidden');
+        window.toggleLeaderboard();
+    };
+
+    window.toggleLeaderboard = async () => {
+        const overlay = document.getElementById('leaderboardOverlay');
+        if (overlay.classList.contains('hidden')) {
+            overlay.classList.remove('hidden');
+            
+            const btn = document.getElementById('lbCloseBtn');
+            if (endGameFlow) {
+                btn.innerText = "繼續";
+                btn.onclick = window.exitToHome;
+            } else {
+                btn.innerText = "返回";
+                btn.onclick = () => overlay.classList.add('hidden');
+            }
+
+            const content = document.getElementById('leaderboardContent');
+            content.innerHTML = '<div style="text-align:center; color:var(--gold);">數據採集中...</div>';
+            try {
+                const q = query(collection(db, "physics_leaderboard"), orderBy("totalTime", "asc"), limit(10));
+                const snap = await getDocs(q);
+                if (snap.empty) {
+                    content.innerHTML = '<div style="text-align:center;">暫無實驗數據</div>';
+                    return;
+                }
+                let html = '<table style="width:100%; border-collapse:collapse; text-align:center;">';
+                html += '<tr style="border-bottom:1px solid #555; color:var(--accent);"><th>排名</th><th>名字</th><th>時間</th><th>難度</th></tr>';
+                let rank = 1;
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    const dispName = data.name ? data.name.substring(0,6) : '無名';
+                    html += `<tr><td style="padding:6px 0;">${rank}</td><td>${dispName}</td><td>${data.totalTime}s</td><td>${data.difficulty}</td></tr>`;
+                    rank++;
+                });
+                html += '</table>';
+                content.innerHTML = html;
+            } catch(e) {
+                content.innerHTML = '<div style="text-align:center; color:red;">讀取失敗，請檢查網絡或數據庫設定。</div>';
+            }
+        } else {
+            overlay.classList.add('hidden');
+        }
+    };
+
     window.startGame = () => { 
         levelTimes = [0,0,0,0]; 
+        endGameFlow = false;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         currentDiff = parseFloat(document.querySelector('input[name="diff"]:checked').value);
         document.getElementById('mainMenu').classList.add('hidden');
@@ -188,10 +246,7 @@
 
     async function startLevelFlow(idx) {
         isPlaying = false; objects = []; currentLevel = idx; currentCharIdx = 0; lastSpawnedIdx = -1; timeBonus = 0; combo = 0; hasShield = false;
-        
-        // 🌟 2. 徹底重置按鍵狀態，避免上一關/狂撳遺留嘅移動指令
         keys.left = false; keys.right = false; keys.shift = false;
-
         document.getElementById('transitionOverlay').classList.add('hidden');
         document.getElementById('transitionApple').classList.remove('apple-active');
         document.getElementById('levelDisplay').innerText = `第 ${idx + 1} 關`;
@@ -263,12 +318,9 @@
         const f = formulas[currentLevel];
         if (o.isCorrect && o.idx === currentCharIdx) {
             currentCharIdx++; combo++; timeBonus += 0.5;
-            
-            // 🌟 3. Combo 文字特效歸位
             let comboTxt = combo > 1 ? ` COMBO x${combo}` : '';
             msg(`+0.5s${comboTxt}`, "#2ecc71"); 
             playSound(600, 0.1);
-            
             if (currentCharIdx >= f.length) { 
                 isPlaying = false; 
                 levelTimes[currentLevel] += (Date.now() - startTime)/1000; 
@@ -304,6 +356,7 @@
     }
 
     async function showFinal() {
+        endGameFlow = true; 
         document.getElementById('transitionOverlay').classList.add('hidden');
         document.getElementById('resultOverlay').classList.remove('hidden');
         let total = 0; levelTimes.forEach(t => total += t);
@@ -324,7 +377,12 @@
         document.getElementById('qrcode').src = `https://api.qrserver.com/v1/create-qr-code/?size=85x85&data=${encodeURIComponent(window.location.href)}`;
     }
 
-    window.exitToHome = () => { document.getElementById('resultOverlay').classList.add('hidden'); document.getElementById('quoteOverlay').classList.remove('hidden'); setTimeout(() => location.reload(), 4500); };
+    window.exitToHome = () => { 
+        document.getElementById('resultOverlay').classList.add('hidden'); 
+        document.getElementById('leaderboardOverlay').classList.add('hidden'); 
+        document.getElementById('quoteOverlay').classList.remove('hidden'); 
+        setTimeout(() => location.reload(), 4500); 
+    };
     
     function msg(t, c) {
         const d = document.createElement('div'); d.className = 'float-msg'; d.innerText = t; d.style.color = c;
@@ -340,7 +398,6 @@
     window.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') keys.left = true; if (e.key === 'ArrowRight') keys.right = true; if (e.shiftKey) keys.shift = true; });
     window.addEventListener('keyup', e => { if (e.key === 'ArrowLeft') keys.left = false; if (e.key === 'ArrowRight') keys.right = false; if (!e.shiftKey) keys.shift = false; });
     
-    // 🌟 2. 修復狂按卡死：加入 onpointerleave 與 onpointercancel，確保觸控離開邊界必定釋放按鍵
     const bindBtn = (id, k) => { 
         const el = document.getElementById(id); 
         const press = (e) => { e.preventDefault(); keys[k]=true; if(id.includes('Fast')) keys.shift=true; }; 
@@ -351,6 +408,26 @@
         el.onpointercancel = release;
     };
     bindBtn('btnLeft', 'left'); bindBtn('btnRight', 'right'); bindBtn('btnFastLeft', 'left'); bindBtn('btnFastRight', 'right');
+
+    // 🌟 全螢幕觸控監聽 (左半邊 = 左, 右半邊 = 右)
+    const screenTouchStart = (e) => {
+        if (!isPlaying || isPaused) return;
+        if (e.clientX < canvas.width / 2) {
+            keys.left = true;
+        } else {
+            keys.right = true;
+        }
+    };
+    const screenTouchEnd = () => {
+        keys.left = false;
+        keys.right = false;
+    };
+    
+    canvas.addEventListener('pointerdown', screenTouchStart);
+    canvas.addEventListener('pointerup', screenTouchEnd);
+    canvas.addEventListener('pointerleave', screenTouchEnd);
+    canvas.addEventListener('pointercancel', screenTouchEnd);
+
 </script>
 </body>
 </html>

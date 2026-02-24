@@ -3,22 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 v0.8.7</title>
+<title>蘋果的考驗 v0.9.0</title>
 <style>
     body { margin: 0; padding: 0; background-color: #2c3e50; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; color: white; }
     #gameContainer { position: relative; width: 100vw; height: 100vh; background-color: #34495e; overflow: hidden; }
     canvas { display: block; width: 100%; height: 100%; touch-action: none; }
     #ui { position: absolute; top: 10px; left: 15px; right: 15px; display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; pointer-events: none; z-index: 5; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
     #equationHeader { position: absolute; top: 45px; left: 0; right: 0; text-align: center; z-index: 5; pointer-events: none; padding: 10px; }
-    #targetEquation { font-size: clamp(16px, 5vw, 32px); font-weight: bold; color: #f1c40f; background: rgba(0,0,0,0.7); padding: 12px; border-radius: 12px; display: inline-block; letter-spacing: 2px; min-width: 88%; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+    #targetEquation { font-size: clamp(16px, 5.5vw, 32px); font-weight: bold; color: #f1c40f; background: rgba(0,0,0,0.7); padding: 12px; border-radius: 12px; display: inline-block; letter-spacing: 2px; min-width: 88%; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
     .next-char { color: #ffffff; text-decoration: underline; text-underline-offset: 6px; animation: blink 0.8s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     #powerUpMsg { position: absolute; top: 160px; left: 50%; transform: translateX(-50%); font-size: 22px; font-weight: bold; color: #2ecc71; text-shadow: 0 0 10px #27ae60; opacity: 0; transition: opacity 0.3s; z-index: 5; }
     #controls { position: absolute; bottom: 25px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px; padding: 0 5px; z-index: 10; pointer-events: none; }
     .control-btn { width: 68px; height: 68px; border-radius: 15px; background: rgba(0, 0, 0, 0.6); color: white; font-size: 24px; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; border: 2px solid rgba(255,255,255,0.3); }
-    #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 20; padding: 20px; box-sizing: border-box; }
+    
+    /* 彈出層樣式 */
+    .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 20; padding: 20px; box-sizing: border-box; }
     #rulesBox { background: rgba(241, 196, 15, 0.1); border: 1px solid #f1c40f; border-radius: 10px; padding: 12px; margin: 10px 0; width: 92%; max-width: 420px; font-size: 13px; text-align: left; }
-    button.start { padding: 12px 45px; font-size: 22px; cursor: pointer; border: none; border-radius: 50px; background-color: #e74c3c; color: white; font-weight: bold; margin-top: 10px; }
+    .start-btn { padding: 12px 45px; font-size: 22px; cursor: pointer; border: none; border-radius: 50px; background-color: #e74c3c; color: white; font-weight: bold; margin-top: 10px; }
     .hidden { display: none !important; }
 </style>
 </head>
@@ -26,34 +28,47 @@
 
 <div id="gameContainer">
     <div id="ui">
-        <div id="timeDisplay">時間: 49.50s</div>
-        <div id="scoreDisplay">進度: 0/4</div>
-        <div style="font-size: 12px; opacity: 0.6;">v0.8.7</div>
+        <div id="levelDisplay">關卡: 1/4</div>
+        <div id="timeDisplay">剩餘: 9.81s</div>
+        <div style="font-size: 12px; opacity: 0.6;">v0.9.0</div>
     </div>
     <div id="equationHeader"><div id="targetEquation">準備挑戰...</div></div>
-    <div id="powerUpMsg">⏰ +5s</div>
+    <div id="powerUpMsg">⏰ +3s</div>
     <canvas id="gameCanvas"></canvas>
+    
     <div id="controls">
         <div class="control-btn" id="btnFastLeft">◀◀</div>
         <div class="control-btn" id="btnLeft">◀</div>
         <div class="control-btn" id="btnRight">▶</div>
         <div class="control-btn" id="btnFastRight">▶▶</div>
     </div>
-    <div id="overlay">
+
+    <div id="startOverlay" class="overlay">
         <h1 style="color: #e74c3c; margin: 5px 0; font-size: 30px;">🍎 蘋果的考驗</h1>
         <div id="rulesBox">
-            <h3 style="margin: 0 0 5px 0; color: #f1c40f; text-align: center;">📜 遊戲規則</h3>
-            1. 依上方黃色公式<b>順序</b>接取正確符號。<br>
-            2. 接中<b>⏰ 時鐘</b>加 5 秒；接錯符號會扣秒。<br>
-            3. 正確字元會<b>提前出現</b>，請集中精神。<br>
-            4. <b>電腦操作</b>：← / → 微調，按住 <b>Shift</b> 衝刺。
+            <h3 style="margin: 0 0 5px 0; color: #f1c40f; text-align: center;">📜 分關模式說明</h3>
+            1. 遊戲分 4 關，每關完成一條物理公式。<br>
+            2. 每一關開始時，計時器將重設為 <b>9.81 秒</b>。<br>
+            3. 接中<b>⏰ 時鐘</b>加 3 秒；接中正確字元加 0.5 秒。<br>
+            4. <b>電腦操作</b>：← / → 微調，按住 <b>Shift</b> 快速衝刺。
         </div>
-        <input type="text" id="playerName" maxlength="10" placeholder="輸入名字">
-        <div style="margin: 10px 0;"><label><input type="radio" name="diff" value="0" checked> 難度 0</label></div>
-        <div id="leaderboard" style="width: 100%; margin: 10px 0; font-size: 14px;">
-            <ol id="scoreList" style="text-align: left; display: inline-block;"><li>榜單載入中...</li></ol>
+        <input type="text" id="playerName" maxlength="10" placeholder="輸入學霸名字" style="font-size: 18px; padding: 10px; border-radius: 8px; border: none; margin-bottom: 10px;">
+        <button class="start-btn" onclick="initGame()">開始挑戰</button>
+    </div>
+
+    <div id="levelOverlay" class="overlay hidden">
+        <h2 id="levelStatus" style="color: #f1c40f;">Level Clear!</h2>
+        <p id="levelStats">本關耗時: 5.0s</p>
+        <button id="nextLevelBtn" class="start-btn">進入下一關</button>
+    </div>
+
+    <div id="finalOverlay" class="overlay hidden">
+        <h1 style="color: #e74c3c;">🏆 挑戰完成</h1>
+        <p id="finalStats">總成績已上傳至榜單</p>
+        <div id="leaderboard" style="width: 100%; margin: 15px 0; font-size: 14px;">
+            <ol id="scoreList" style="text-align: left; display: inline-block;"><li>載入榜中...</li></ol>
         </div>
-        <button class="start" id="startBtn">開始挑戰 (49.5s)</button>
+        <button class="start-btn" onclick="location.reload()">重新開始</button>
     </div>
 </div>
 
@@ -77,28 +92,25 @@
     const ctx = canvas.getContext('2d');
     const targetEqDisplay = document.getElementById('targetEquation');
     const timeDisplay = document.getElementById('timeDisplay');
-    const scoreDisplay = document.getElementById('scoreDisplay');
+    const levelDisplay = document.getElementById('levelDisplay');
     const powerUpMsg = document.getElementById('powerUpMsg');
-    const overlay = document.getElementById('overlay');
-    const startBtn = document.getElementById('startBtn');
-    const playerNameInput = document.getElementById('playerName');
-
+    
     const formulas = [
         ['v', '=', 'u', '+', 'a', 't'],
         ['s', '=', '½', '(', 'u', '+', 'v', ')', 't'],
         ['s', '=', 'u', 't', '+', '½', 'a', 't', '²'],
         ['v', '²', '=', 'u', '²', '+', '2', 'a', 's']
     ];
-
     const distractorsMap = { 'v': ['u', 'y'], 'u': ['v', 'w'], 's': ['d', 'h'], 'a': ['g', 'q'], 't': ['f', 'x'], '=': ['≈', '-'], '+': ['-', '×'], '(': ['{', '['], ')': ['}', ']'], '²': ['³', '2'], '½': ['⅓', '¼'], '2': ['3', 'z'] };
 
-    let isPlaying = false, startTime, totalBonusTime = 0, currentFormulaIdx = 0, currentCharIdx = 0, animationId, currentDiff = 0, player = { x: 0, y: 0, size: 65 }, objects = [], isSwitching = false;
+    let isPlaying = false, startTime, totalBonusTime = 0, currentLevel = 0, currentCharIdx = 0, objects = [], player = { x: 0, y: 0, size: 65 };
+    let finalTotalTime = 0;
     const controlState = { left: false, right: false, fastLeft: false, fastRight: false };
 
     function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; player.x = canvas.width / 2; player.y = canvas.height - 90; }
     window.addEventListener('resize', resize); resize();
 
-    // 控制邏輯整合 (減少事件監聽開銷)
+    // 控制綁定
     const setControl = (key, val) => (e) => { e.preventDefault(); controlState[key] = val; };
     document.getElementById('btnFastLeft').addEventListener('touchstart', setControl('fastLeft', true), {passive:false});
     document.getElementById('btnFastLeft').addEventListener('touchend', setControl('fastLeft', false));
@@ -115,9 +127,25 @@
     });
     window.addEventListener('keyup', e => { if(e.key === 'ArrowLeft' || e.key === 'Shift') { controlState.left = false; controlState.fastLeft = false; } if(e.key === 'ArrowRight' || e.key === 'Shift') { controlState.right = false; controlState.fastRight = false; } });
 
+    window.initGame = () => {
+        document.getElementById('startOverlay').classList.add('hidden');
+        startLevel(0);
+    };
+
+    function startLevel(idx) {
+        currentLevel = idx;
+        currentCharIdx = 0;
+        totalBonusTime = 0;
+        objects = [];
+        isPlaying = true;
+        startTime = Date.now();
+        levelDisplay.innerText = `關卡: ${currentLevel + 1}/4`;
+        updateFormulaDisplay();
+        requestAnimationFrame(gameLoop);
+    }
+
     function updateFormulaDisplay() {
-        const currentF = formulas[currentFormulaIdx];
-        if (!currentF) return;
+        const currentF = formulas[currentLevel];
         let html = "";
         for (let i = 0; i < currentF.length; i++) {
             if (i < currentCharIdx) html += `<span style="color:#2ecc71">${currentF[i]}</span>`;
@@ -125,19 +153,15 @@
             else html += `<span style="opacity:0.2">${currentF[i]}</span>`;
         }
         targetEqDisplay.innerHTML = html;
-        scoreDisplay.innerText = `進度: ${currentFormulaIdx}/4`;
     }
 
     function spawnObject() {
-        if (!isPlaying || isSwitching) return;
-        const currentF = formulas[currentFormulaIdx];
-        if (!currentF) return;
-
+        const currentF = formulas[currentLevel];
         const targetChar = currentF[currentCharIdx];
         const rand = Math.random();
         let char = '', type = 'distractor';
 
-        if (rand < 0.04) { char = '⏰'; type = 'clock'; }
+        if (rand < 0.05) { char = '⏰'; type = 'clock'; }
         else if (rand < 0.65) {
             const nextIdx = currentCharIdx + 1;
             if (nextIdx < currentF.length && Math.random() > 0.6) { char = currentF[nextIdx]; type = 'future'; }
@@ -146,7 +170,7 @@
             const sim = distractorsMap[targetChar] || ['X', 'Y'];
             char = sim[Math.floor(Math.random() * sim.length)];
         }
-        objects.push({ char, type, x: Math.random()*(canvas.width-40)+20, y: -50, size: 45, speed: (canvas.height * 0.0035) * (0.9 + Math.random() * 0.3) });
+        objects.push({ char, type, x: Math.random()*(canvas.width-40)+20, y: -50, size: 45, speed: (canvas.height * 0.004) * (0.9 + Math.random() * 0.3) });
     }
 
     function gameLoop() {
@@ -154,11 +178,11 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         let now = Date.now();
-        let displayTime = Math.max(0, 49.50 + totalBonusTime - (now - startTime)/1000);
-        timeDisplay.innerText = `時間: ${displayTime.toFixed(2)}s`;
-        if (displayTime <= 0) { endGame(false); return; }
+        let displayTime = Math.max(0, 9.81 + totalBonusTime - (now - startTime)/1000);
+        timeDisplay.innerText = `剩餘: ${displayTime.toFixed(2)}s`;
+        
+        if (displayTime <= 0) { isPlaying = false; alert("時間到！該關失敗。"); location.reload(); return; }
 
-        // 移動邏輯
         if (controlState.fastLeft) player.x -= canvas.width * 0.035; else if (controlState.left) player.x -= canvas.width * 0.012;
         if (controlState.fastRight) player.x += canvas.width * 0.035; else if (controlState.right) player.x += canvas.width * 0.012;
         player.x = Math.max(player.size/2, Math.min(canvas.width - player.size/2, player.x));
@@ -166,87 +190,75 @@
         ctx.font = `${player.size}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText('🍎', player.x, player.y);
 
-        if (!isSwitching) {
-            const targetChar = formulas[currentFormulaIdx][currentCharIdx];
-            for (let i = objects.length - 1; i >= 0; i--) {
-                const o = objects[i];
-                o.y += o.speed;
-                
-                // 效能優化：1. 離開畫面立即徹底銷毀
-                if (o.y > canvas.height + 50) {
-                    objects[i] = null;
-                    objects.splice(i, 1);
-                    continue;
-                }
+        const currentF = formulas[currentLevel];
+        for (let i = objects.length - 1; i >= 0; i--) {
+            const o = objects[i]; o.y += o.speed;
+            if (o.y > canvas.height + 50) { objects.splice(i, 1); continue; }
 
-                ctx.font = `bold ${o.size}px Arial`;
-                ctx.fillStyle = (o.char === targetChar) ? '#f1c40f' : 'white';
-                ctx.fillText(o.char, o.x, o.y);
+            ctx.font = `bold ${o.size}px Arial`;
+            ctx.fillStyle = (o.char === currentF[currentCharIdx]) ? '#f1c40f' : 'white';
+            ctx.fillText(o.char, o.x, o.y);
 
-                // 2. 簡化碰撞檢測範圍
-                if (Math.abs(player.x - o.x) < 40 && Math.abs(player.y - o.y) < 40) {
-                    handleCatch(o);
-                    objects[i] = null;
-                    objects.splice(i, 1);
-                    continue;
-                }
+            if (Math.abs(player.x - o.x) < 40 && Math.abs(player.y - o.y) < 40) {
+                handleCatch(o);
+                objects.splice(i, 1);
+                continue;
             }
-            if (Math.random() < 0.05) spawnObject();
         }
-        animationId = requestAnimationFrame(gameLoop);
+        if (Math.random() < 0.05) spawnObject();
+        requestAnimationFrame(gameLoop);
     }
 
     function handleCatch(obj) {
-        if (obj.type === 'clock') { totalBonusTime += 5; showMsg("⏰ +5s"); return; }
+        if (obj.type === 'clock') { totalBonusTime += 3; showMsg("⏰ +3s"); return; }
         
-        const currentF = formulas[currentFormulaIdx];
+        const currentF = formulas[currentLevel];
         if (obj.char === currentF[currentCharIdx]) {
             currentCharIdx++;
+            totalBonusTime += 0.5; // 接中正確加 0.5s
             if (currentCharIdx >= currentF.length) {
-                isSwitching = true;
-                objects.forEach((o, index) => objects[index] = null); // 徹底銷毀物件引用
-                objects = [];
-                currentFormulaIdx++;
-                currentCharIdx = 0;
-                totalBonusTime += 5;
-                showMsg("✅ 完成！");
-                
-                if (currentFormulaIdx >= formulas.length) { 
-                    endGame(true); 
-                } else {
-                    // 🌟 異步更新機制：確保 DOM 更新不卡死引擎
-                    setTimeout(() => {
-                        updateFormulaDisplay();
-                        setTimeout(() => isSwitching = false, 500); 
-                    }, 500);
-                }
+                isPlaying = false;
+                const timeTaken = (Date.now() - startTime) / 1000;
+                finalTotalTime += timeTaken;
+                showLevelClear(timeTaken);
             } else {
                 updateFormulaDisplay();
             }
         } else {
-            totalBonusTime -= 1;
-            showMsg("❌ -1s");
-            updateFormulaDisplay();
+            totalBonusTime -= 1.5; // 接錯扣 1.5s
+            showMsg("❌ -1.5s");
         }
     }
 
-    function showMsg(txt) { powerUpMsg.innerText = txt; powerUpMsg.style.opacity = 1; setTimeout(() => { powerUpMsg.style.opacity = 0; }, 1000); }
-
-    async function endGame(win) {
-        isPlaying = false;
-        cancelAnimationFrame(animationId);
-        const timeUsed = (49.50 + totalBonusTime - ((Date.now() - startTime)/1000)).toFixed(2);
-        document.getElementById('finalScore').innerText = win ? `🎉 耗時：${timeUsed}s` : `挑戰結束！完成 ${currentFormulaIdx} 條`;
-        document.getElementById('finalScore').classList.remove('hidden');
-        overlay.classList.remove('hidden');
-        if (win) {
-            try {
-                const pName = playerNameInput.value.trim().toUpperCase() || "ANON";
-                const compositeScore = (currentFormulaIdx * 100000) + (100000 - Math.floor(timeUsed * 100));
-                await addDoc(collection(db, "physics_leaderboard"), { name: pName, completed: currentFormulaIdx, timeUsed: timeUsed, compositeScore, timestamp: new Date() });
-                renderLeaderboard();
-            } catch (e) {}
+    function showLevelClear(time) {
+        document.getElementById('levelOverlay').classList.remove('hidden');
+        document.getElementById('levelStatus').innerText = (currentLevel === 3) ? "🎉 恭喜完成所有關卡！" : `Level ${currentLevel + 1} Clear!`;
+        document.getElementById('levelStats').innerText = `本關耗時: ${time.toFixed(2)}s`;
+        
+        const nextBtn = document.getElementById('nextLevelBtn');
+        if (currentLevel < 3) {
+            nextBtn.innerText = "進入下一關";
+            nextBtn.onclick = () => {
+                document.getElementById('levelOverlay').classList.add('hidden');
+                startLevel(currentLevel + 1);
+            };
+        } else {
+            nextBtn.innerText = "查看總成績";
+            nextBtn.onclick = showFinalResult;
         }
+    }
+
+    async function showFinalResult() {
+        document.getElementById('levelOverlay').classList.add('hidden');
+        document.getElementById('finalOverlay').classList.remove('hidden');
+        document.getElementById('finalStats').innerText = `總挑戰耗時: ${finalTotalTime.toFixed(2)}s`;
+        
+        const pName = document.getElementById('playerName').value.trim().toUpperCase() || "ANON";
+        try {
+            const compositeScore = 400000 + (100000 - Math.floor(finalTotalTime * 100));
+            await addDoc(collection(db, "physics_leaderboard"), { name: pName, completed: 4, timeUsed: finalTotalTime.toFixed(2), compositeScore, timestamp: new Date() });
+            renderLeaderboard();
+        } catch (e) {}
     }
 
     async function renderLeaderboard() {
@@ -254,15 +266,11 @@
             const q = query(collection(db, "physics_leaderboard"), orderBy("compositeScore", "desc"), limit(5));
             const snap = await getDocs(q);
             const list = document.getElementById('scoreList'); list.innerHTML = '';
-            snap.forEach(doc => { const d = doc.data(); list.innerHTML += `<li><b>${d.name}</b>: ${d.completed}條 (${d.timeUsed}s)</li>`; });
+            snap.forEach(doc => { const d = doc.data(); list.innerHTML += `<li><b>${d.name}</b>: ${d.timeUsed}s</li>`; });
         } catch (e) {}
     }
 
-    startBtn.onclick = () => {
-        currentFormulaIdx = 0; currentCharIdx = 0; totalBonusTime = 0; objects = []; isPlaying = true; isSwitching = false;
-        startTime = Date.now(); overlay.classList.add('hidden'); updateFormulaDisplay(); resize(); gameLoop();
-    };
-    renderLeaderboard();
+    function showMsg(txt) { powerUpMsg.innerText = txt; powerUpMsg.style.opacity = 1; setTimeout(() => { powerUpMsg.style.opacity = 0; }, 1000); }
 </script>
 </body>
 </html>

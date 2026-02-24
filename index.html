@@ -3,14 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 V0.6.5.8</title>
+<title>蘋果的考驗 V0.6.6.0</title>
 <style>
     :root { --accent: #e74c3c; --gold: #f1c40f; --bg: #0d0d0d; --cert-bg: #1a1a1a; }
+    /* 核心修復：防止手機長按選擇字元 */
+    * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
     body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; touch-action: none; position: fixed; width: 100%; height: 100%; }
     #gameContainer { position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #000; }
     canvas { display: block; width: 100%; height: 100%; }
 
-    /* UI 介面 */
+    /* UI 頂部 */
     #ui { position: absolute; top: 12px; left: 15px; right: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 50; pointer-events: none; }
     .ui-item { background: rgba(0,0,0,0.6); padding: 6px 14px; border-radius: 20px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2); font-size: 14px; }
     #pauseBtn { pointer-events: auto; cursor: pointer; background: var(--accent); color: white; border: none; padding: 5px 15px; border-radius: 10px; font-weight: bold; }
@@ -21,7 +23,7 @@
     .next-char { color: #fff; text-decoration: underline; text-underline-offset: 6px; animation: blink 0.8s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-    /* 操作按鈕 */
+    /* 控制按鈕 */
     #controls { position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; z-index: 200; pointer-events: none; }
     .control-btn { width: 68px; height: 68px; border-radius: 15px; background: rgba(50,50,50,0.8); color: white; font-size: 24px; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; border: 2px solid rgba(255,255,255,0.3); }
 
@@ -29,14 +31,22 @@
     .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); display: flex; flex-direction: column; align-items: center; text-align: center; z-index: 100; padding: 20px; box-sizing: border-box; backdrop-filter: blur(10px); justify-content: flex-start; padding-top: 5vh; overflow-y: auto; }
     .hidden { display: none !important; }
 
-    .btn-apple { padding: 14px 40px; font-size: 18px; cursor: pointer; border: none; border-radius: 50px; background: var(--accent); color: white; font-weight: bold; margin: 8px; width: 85%; max-width: 280px; }
-    .certificate { background: var(--cert-bg); border: 4px double var(--gold); padding: 20px; border-radius: 15px; width: 95%; max-width: 340px; margin: 10px 0; box-shadow: 0 0 20px var(--gold); }
+    .btn-apple { padding: 14px 40px; font-size: 18px; cursor: pointer; border: none; border-radius: 50px; background: var(--accent); color: white; font-weight: bold; margin: 8px; width: 85%; max-width: 280px; transition: 0.2s; }
+    
+    /* 證書版面 */
+    .certificate { background: var(--cert-bg); border: 4px double var(--gold); padding: 20px; border-radius: 15px; width: 95%; max-width: 340px; margin: 10px 0; box-shadow: 0 0 25px rgba(241, 196, 15, 0.4); }
+    .cert-rank-name { font-size: 20px; color: var(--accent); font-weight: bold; margin-bottom: 8px; border: 1px solid var(--accent); display: inline-block; padding: 2px 12px; border-radius: 5px; }
 
+    /* 過場動畫 */
+    #transitionApple { position: absolute; right: 15%; top: -100px; font-size: 80px; transition: top 2.5s cubic-bezier(0.17, 0.67, 0.83, 0.67); opacity: 0; z-index: 110; }
+    .apple-active { top: 60% !important; opacity: 1 !important; }
+
+    /* 文字浮動特效 */
     .float-msg { position: absolute; pointer-events: none; font-weight: bold; animation: floatUp 1s forwards; z-index: 60; font-size: 24px; text-shadow: 2px 2px 4px black; }
     @keyframes floatUp { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-60px); } }
 </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
 <div id="gameContainer">
     <div id="ui">
@@ -58,36 +68,42 @@
     </div>
 
     <div id="mainMenu" class="overlay">
-        <h1 style="color:var(--accent); font-size:42px;">🍎 蘋果的考驗</h1>
+        <h1 style="color:var(--accent); font-size:42px; margin:0;">🍎 蘋果的考驗</h1>
         <p style="color:var(--gold); font-style: italic;">「研習物理，需心無旁鶩。」</p>
-        <input type="text" id="playerName" placeholder="你的名字" style="width:220px; padding:12px; border-radius:10px; text-align:center; font-size:18px; margin:15px 0;">
+        <input type="text" id="playerName" placeholder="你的名字" maxlength="10" style="width:220px; padding:12px; border-radius:10px; text-align:center; font-size:18px; margin:15px 0; border:1px solid #444; background:#222; color:white;">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; width:90%; max-width:320px; margin:10px 0;">
             <label><input type="radio" name="diff" value="0" checked> 難度 0</label>
             <label><input type="radio" name="diff" value="9.81"> 難度 9.81</label>
             <label><input type="radio" name="diff" value="19.62"> 難度 19.62</label>
             <label><input type="radio" name="diff" value="29.43"> 難度 29.43</label>
         </div>
-        <button class="btn-apple" onclick="window.startGame()">開始挑戰</button>
+        <button class="btn-apple" onclick="window.startGame()">開始實驗</button>
     </div>
 
     <div id="transitionOverlay" class="overlay hidden">
-        <h2 style="color:var(--gold); margin-top:50px;" id="transMsg">關卡完成！</h2>
+        <div id="transitionApple">🍎</div>
+        <h2 style="color:var(--gold); margin-top:50px;" id="transMsg">數據採集完成</h2>
         <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:15px; margin:20px 0; width:80%;">
             <p id="stageTimeSummary" style="font-size:24px; font-weight:bold; margin:10px 0;"></p>
-            <p style="font-size:14px; opacity:0.7;">準備進入下一項物理數據採集...</p>
+            <p style="font-size:14px; color:#aaa;">預產物理路徑... 準備下一階段</p>
         </div>
-        <button class="btn-apple" id="nextLevelBtn">下一步</button>
+        <button class="btn-apple" id="nextLevelBtn" style="opacity:0; transition: opacity 0.5s;">繼續實驗</button>
     </div>
 
     <div id="resultOverlay" class="overlay hidden">
         <div class="certificate">
-            <div id="rankLabel" style="font-size: 20px; color: var(--accent); font-weight: bold; border: 1px solid var(--accent); display: inline-block; padding: 2px 12px; border-radius: 5px;">物理學霸</div>
-            <h2 style="color:var(--gold);">物理成就證書</h2>
-            <p>茲證明 <span id="certPlayerName" style="color:var(--gold); font-weight:bold;"></span> 成功通過實驗！</p>
-            <p>總時間：<span id="certTotalTime"></span>s | 難度：<span id="certDiff"></span></p>
+            <div id="rankLabel" class="cert-rank-name">物理學霸</div>
+            <h2 style="color:var(--gold); margin:10px 0;">物理成就證書</h2>
+            <div style="font-size:16px; margin:10px 0; border-top:1px solid rgba(241,196,15,0.3); padding-top:10px;">
+                茲證明 <span id="certPlayerName" style="color:var(--gold); font-weight:bold;"></span><br>成功通過「蘋果的考驗」實驗！
+            </div>
+            <div style="font-size:18px;">
+                總時間：<span id="certTotalTime" style="color:var(--accent); font-weight:bold;"></span>s<br>
+                難度：<span id="certDiff"></span>
+            </div>
             <div style="margin-top:12px;"><img id="qrcode" src="" alt="QR" width="85" style="background:white; padding:4px; border-radius:5px;"></div>
         </div>
-        <button class="btn-apple" style="background:linear-gradient(45deg, #f09433, #bc1888);" onclick="window.copyToIG()">📋 複製學霸戰績</button>
+        <button class="btn-apple" style="background:linear-gradient(45deg, #f09433, #bc1888);" onclick="window.copyToIG()">📋 複製學霸成績分享 IG</button>
         <button class="btn-apple" style="background:#34495e;" onclick="window.exitToHome()">返回主頁挑戰</button>
     </div>
 
@@ -102,6 +118,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+    // ⚠️ 請在此填入 Firebase 配置
     const firebaseConfig = {
       apiKey: "AIzaSyDoHHh-8Gm5tt_uWF4IPGIGfOTNYnAgHr4",
       authDomain: "physicsgame-rl.firebaseapp.com",
@@ -131,19 +148,27 @@
     function playSound(f, d, type = 'sine') {
         if (!audioCtx) return;
         const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-        o.type = type; o.frequency.setValueAtTime(f + (combo * 20), audioCtx.currentTime);
-        g.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        o.type = type; o.frequency.setValueAtTime(f + (combo * 15), audioCtx.currentTime);
+        g.gain.setValueAtTime(0.05, audioCtx.currentTime); 
         g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + d);
         o.connect(g); g.connect(audioCtx.destination);
         o.start(); o.stop(audioCtx.currentTime + d);
     }
 
     window.togglePause = () => { if(!isPlaying) return; isPaused = !isPaused; document.getElementById('pauseBtn').innerText = isPaused ? "▶ 繼續" : "⏸ 暫停"; };
-    window.startGame = () => { audioCtx = new AudioContext(); currentDiff = parseFloat(document.querySelector('input[name="diff"]:checked').value); document.getElementById('mainMenu').classList.add('hidden'); startLevelFlow(0); };
+    
+    window.startGame = () => { 
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        currentDiff = parseFloat(document.querySelector('input[name="diff"]:checked').value);
+        document.getElementById('mainMenu').classList.add('hidden');
+        startLevelFlow(0);
+    };
 
     async function startLevelFlow(idx) {
-        isPlaying = false; objects = []; currentLevel = idx; currentCharIdx = 0; lastSpawnedIdx = -1; timeBonus = 0; combo = 0;
+        isPlaying = false; objects = []; currentLevel = idx; currentCharIdx = 0; lastSpawnedIdx = -1; timeBonus = 0; combo = 0; hasShield = false;
         document.getElementById('transitionOverlay').classList.add('hidden');
+        document.getElementById('transitionApple').classList.remove('apple-active');
+        document.getElementById('nextLevelBtn').style.opacity = "0";
         updateUI();
         const cd = document.getElementById('countdownOverlay'); cd.classList.remove('hidden');
         for (let s of ["READY?", "3", "2", "1", "GO!"]) { cd.innerText = s; playSound(440, 0.2); await new Promise(r => setTimeout(r, 650)); }
@@ -156,7 +181,7 @@
         
         const remain = Math.max(0, 19.62 + timeBonus - (Date.now() - startTime)/1000);
         document.getElementById('timeDisplay').innerText = `${remain.toFixed(2)}s`;
-        if (remain <= 0) { alert("時間耗盡，請重新開始此實驗！"); startLevelFlow(currentLevel); return; }
+        if (remain <= 0) { isPlaying = false; alert("實驗失敗！請重試。"); startLevelFlow(currentLevel); return; }
 
         let moveSpeed = (canvas.width * 0.005) * (keys.shift ? 5 : 1);
         if (keys.left) player.x -= moveSpeed; if (keys.right) player.x += moveSpeed;
@@ -171,7 +196,7 @@
         if (correctObjs.length === 0 || correctObjs[correctObjs.length-1].y > canvas.height/3.5) {
             if (lastSpawnedIdx < f.length - 1) spawn(lastSpawnedIdx + 1, true);
         }
-        if (Math.random() < 0.02) spawn(currentCharIdx, true); 
+        if (Math.random() < 0.01) spawn(currentCharIdx, true); // 密度補充
 
         for (let i = objects.length - 1; i >= 0; i--) {
             const o = objects[i]; o.y += o.speed || 4;
@@ -196,27 +221,22 @@
     }
 
     function spawnDistractor() {
-        const f = formulas[currentLevel];
-        let char = 'X';
-        if (currentDiff > 0 && Math.random() < 0.7) {
-            const pool = distMap[f[currentCharIdx]] || ['X'];
-            char = pool[Math.floor(Math.random()*pool.length)];
-        }
-        if (Math.random() < 0.1) char = '⏰';
-        if (currentDiff >= 19.62 && Math.random() < 0.05) char = '🛡️';
+        const pool = distMap[formulas[currentLevel][currentCharIdx]] || ['X'];
+        let char = (Math.random() < 0.7) ? pool[Math.floor(Math.random()*pool.length)] : 'X';
+        if (Math.random() < 0.08) char = '⏰';
+        if (currentDiff >= 19.62 && Math.random() < 0.04) char = '🛡️';
         objects.push({ char, x: 30+Math.random()*(canvas.width-60), y: -50, isCorrect: false, speed: 4+Math.random()*2 });
     }
 
     function catchObj(o) {
-        if (o.char === '⏰') { timeBonus += 3; msg("⏰ +3s", "#f1c40f"); playSound(800, 0.2); return; }
-        if (o.char === '🛡️') { hasShield = true; msg("🛡️ SHIELDED!", "cyan"); playSound(1200, 0.2); return; }
+        if (o.char === '⏰') { timeBonus += 3; msg("⏰ +3s", "#f1c40f"); playSound(800, 0.2, 'square'); return; }
+        if (o.char === '🛡️') { hasShield = true; msg("🛡️ SHIELD!", "cyan"); playSound(1200, 0.2); return; }
         const f = formulas[currentLevel];
         if (o.isCorrect && o.idx === currentCharIdx) {
             currentCharIdx++; combo++; timeBonus += 0.5;
-            msg(`+0.5s ${combo > 2 ? 'COMBO x' + combo : ''}`, "#2ecc71"); playSound(600, 0.1);
+            msg(`+0.5s ${combo > 2 ? 'x'+combo : ''}`, "#2ecc71"); playSound(600, 0.1);
             if (currentCharIdx >= f.length) { 
                 isPlaying = false; levelTimes[currentLevel] = (Date.now() - startTime)/1000;
-                playSound(1000, 0.5, 'triangle');
                 showTransition();
             } else updateUI();
         } else {
@@ -225,9 +245,56 @@
                 if (currentDiff >= 19.62) { currentCharIdx = 0; lastSpawnedIdx = -1; updateUI(); }
                 if (currentDiff > 0) timeBonus -= 1.5;
             }
-            combo = 0; msg("-1.5s MISS", "red"); playSound(200, 0.3);
+            combo = 0; msg("-1.5s MISS", "red"); playSound(200, 0.3, 'sawtooth');
         }
     }
+
+    function showTransition() {
+        const overlay = document.getElementById('transitionOverlay');
+        const apple = document.getElementById('transitionApple');
+        const btn = document.getElementById('nextLevelBtn');
+        overlay.classList.remove('hidden');
+        document.getElementById('stageTimeSummary').innerText = `耗時: ${levelTimes[currentLevel].toFixed(2)}s`;
+        setTimeout(() => { apple.classList.add('apple-active'); }, 1500);
+        setTimeout(() => { btn.style.opacity = "1"; }, 2500);
+        btn.onclick = () => { if (currentLevel < 3) startLevelFlow(currentLevel + 1); else showFinal(); };
+    }
+
+    async function showFinal() {
+        document.getElementById('transitionOverlay').classList.add('hidden');
+        document.getElementById('resultOverlay').classList.remove('hidden');
+        let total = 0; levelTimes.forEach(t => total += t);
+        const name = document.getElementById('playerName').value || "ANONYMOUS";
+        
+        // 🌟 排行榜與稱號邏輯
+        let rankText = "物理學霸";
+        try {
+            const q = query(collection(db, "physics_leaderboard"), orderBy("totalTime", "asc"), limit(10));
+            const snap = await getDocs(q);
+            const scores = snap.docs.map(d => parseFloat(d.data().totalTime));
+            if (scores.length > 0 && total < scores[0]) rankText = "牛頓接班人";
+            else if (scores.length < 10 || total < scores[scores.length-1]) rankText = "物理天才";
+            await addDoc(collection(db, "physics_leaderboard"), { name, totalTime: total.toFixed(2), difficulty: currentDiff, timestamp: new Date() });
+        } catch(e) {}
+
+        document.getElementById('rankLabel').innerText = rankText;
+        document.getElementById('certPlayerName').innerText = name;
+        document.getElementById('certTotalTime').innerText = total.toFixed(2);
+        document.getElementById('certDiff').innerText = currentDiff;
+        document.getElementById('qrcode').src = `https://api.qrserver.com/v1/create-qr-code/?size=85x85&data=${encodeURIComponent(window.location.href)}`;
+    }
+
+    window.copyToIG = () => {
+        let total = 0; levelTimes.forEach(t => total += t);
+        const txt = `🍎 物理學霸：${document.getElementById('certPlayerName').innerText}\n🏆 稱號：${document.getElementById('rankLabel').innerText}\n⏱ 總時間：${total.toFixed(2)}s\n🔥 蘋果的考驗：物理實驗完成！`;
+        navigator.clipboard.writeText(txt).then(() => alert("✅ 成績已複製！"));
+    };
+
+    window.exitToHome = () => {
+        document.getElementById('resultOverlay').classList.add('hidden');
+        document.getElementById('quoteOverlay').classList.remove('hidden');
+        setTimeout(() => location.reload(), 4500);
+    };
 
     function msg(t, c) {
         const d = document.createElement('div'); d.className = 'float-msg'; d.innerText = t; d.style.color = c;
@@ -240,61 +307,14 @@
         document.getElementById('targetEquation').innerHTML = f.map((c, i) => (i < currentCharIdx) ? `<span style="color:#2ecc71">${c}</span>` : (i === currentCharIdx) ? `<span class="next-char">${c}</span>` : `<span style="opacity:0.2">${c}</span>`).join('');
     }
 
-    function showTransition() {
-        const overlay = document.getElementById('transitionOverlay');
-        const btn = document.getElementById('nextLevelBtn');
-        overlay.classList.remove('hidden');
-        document.getElementById('stageTimeSummary').innerText = `本關耗時: ${levelTimes[currentLevel].toFixed(2)}s`;
-        
-        if (currentLevel < 3) {
-            document.getElementById('transMsg').innerText = "關卡完成！";
-            btn.innerText = "進入下一關";
-            btn.onclick = () => startLevelFlow(currentLevel + 1);
-        } else {
-            document.getElementById('transMsg').innerText = "🏆 實驗大獲全勝！";
-            btn.innerText = "生成學霸證書";
-            btn.onclick = () => showFinal();
-        }
-    }
-
-    async function showFinal() {
-        document.getElementById('transitionOverlay').classList.add('hidden');
-        document.getElementById('resultOverlay').classList.remove('hidden');
-        let total = 0; levelTimes.forEach(t => total += t);
-        const name = document.getElementById('playerName').value || "ANONYMOUS";
-        
-        let rankText = "物理學霸";
-        try {
-            const q = query(collection(db, "physics_leaderboard"), orderBy("totalTime", "asc"), limit(10));
-            const snap = await getDocs(q);
-            const scores = snap.docs.map(d => parseFloat(d.data().totalTime));
-            if (scores.length > 0 && total < scores[0]) rankText = "牛頓接班人";
-            else if (scores.length < 10 || total < scores[scores.length-1]) rankText = "物理天才";
-        } catch(e) {}
-
-        document.getElementById('rankLabel').innerText = rankText;
-        document.getElementById('certPlayerName').innerText = name;
-        document.getElementById('certTotalTime').innerText = total.toFixed(2);
-        document.getElementById('certDiff').innerText = currentDiff;
-        document.getElementById('qrcode').src = `https://api.qrserver.com/v1/create-qr-code/?size=85x85&data=${encodeURIComponent(window.location.href)}`;
-        await addDoc(collection(db, "physics_leaderboard"), { name, totalTime: total.toFixed(2), difficulty: currentDiff, timestamp: new Date() });
-    }
-
-    window.copyToIG = () => {
-        let total = 0; levelTimes.forEach(t => total += t);
-        const txt = `🍎 物理學霸：${document.getElementById('certPlayerName').innerText}\n🏆 稱號：${document.getElementById('rankLabel').innerText}\n⏱ 總時間：${total.toFixed(2)}s\n🔥 蘋果的考驗：實驗完成！`;
-        navigator.clipboard.writeText(txt).then(() => alert("✅ 成績已複製！"));
-    };
-
-    window.exitToHome = () => {
-        document.getElementById('resultOverlay').classList.add('hidden');
-        document.getElementById('quoteOverlay').classList.remove('hidden');
-        setTimeout(() => location.reload(), 4500);
-    };
-
+    // 鍵盤與手機控制
     window.addEventListener('keydown', e => { if (e.key === 'ArrowLeft') keys.left = true; if (e.key === 'ArrowRight') keys.right = true; if (e.shiftKey) keys.shift = true; });
     window.addEventListener('keyup', e => { if (e.key === 'ArrowLeft') keys.left = false; if (e.key === 'ArrowRight') keys.right = false; if (!e.shiftKey) keys.shift = false; });
-    const bindBtn = (id, k) => { const el = document.getElementById(id); el.onpointerdown = (e) => { e.preventDefault(); keys[k]=true; if(id.includes('Fast')) keys.shift=true; }; el.onpointerup = () => { keys[k]=false; keys.shift=false; }; };
+    const bindBtn = (id, k) => { 
+        const el = document.getElementById(id); 
+        el.onpointerdown = (e) => { e.preventDefault(); keys[k]=true; if(id.includes('Fast')) keys.shift=true; }; 
+        el.onpointerup = (e) => { e.preventDefault(); keys[k]=false; keys.shift=false; }; 
+    };
     bindBtn('btnLeft', 'left'); bindBtn('btnRight', 'right'); bindBtn('btnFastLeft', 'left'); bindBtn('btnFastRight', 'right');
 </script>
 </body>

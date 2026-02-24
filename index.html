@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>牛頓的考驗 - 勻加速公式版</title>
 <style>
-    /* Reset and Liquid Fullscreen Setup */
     body { margin: 0; padding: 0; background-color: #2c3e50; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; color: white; }
     #gameContainer { position: relative; width: 100vw; height: 100vh; background-color: #34495e; overflow: hidden; }
     canvas { display: block; width: 100%; height: 100%; touch-action: none; }
@@ -36,7 +35,7 @@
 
 <div id="gameContainer">
     <div id="ui">
-        <div id="timeDisplay">時間: 30.00s</div>
+        <div id="timeDisplay">時間: 33.00s</div>
         <div id="scoreDisplay">完成: 0/4</div>
     </div>
     <div id="equationDisplay">_</div>
@@ -99,16 +98,17 @@
     const allValidSymbols = ['s', 'u', 'v', 'a', 't', '=', '+', '(', ')', '²', '½', '2'];
     const trapSymbols = ['4', '-', '¼', '√'];
 
-    let isPlaying = false, startTime = 0, totalBonusTime = 0, currentDisplayTime = 30.00;
+    let isPlaying = false, startTime = 0, totalBonusTime = 0, currentDisplayTime = 33.00;
     let animationId, currentDiff = 'normal', isInvincible = false, invincibleTimer = null; 
     let currentPlayerName = "STUDENT";
     let completedFormulas = [], currentInput = [];
 
+    // 🌟 提升了「目標符號 (rates[0])」的出現機率
     const diffSettings = {
-        'easy': { name: '0', speedBase: 0.003, rates: [0.50, 0.47, 0.00, 0.03, 0.00], starTime: 0 },
-        'normal': { name: '9.81', speedBase: 0.005, rates: [0.40, 0.57, 0.00, 0.03, 0.00], starTime: 0 },
-        'hard': { name: '19.62', speedBase: 0.007, rates: [0.35, 0.45, 0.18, 0.01, 0.01], starTime: 5000 },
-        'very_hard': { name: '29.43', speedBase: 0.009, rates: [0.30, 0.40, 0.28, 0.01, 0.01], starTime: 3000 }
+        'easy': { name: '0', speedBase: 0.003, rates: [0.60, 0.37, 0.00, 0.03, 0.00], starTime: 0 },
+        'normal': { name: '9.81', speedBase: 0.005, rates: [0.55, 0.42, 0.00, 0.03, 0.00], starTime: 0 },
+        'hard': { name: '19.62', speedBase: 0.007, rates: [0.50, 0.30, 0.18, 0.01, 0.01], starTime: 5000 },
+        'very_hard': { name: '29.43', speedBase: 0.009, rates: [0.45, 0.25, 0.28, 0.01, 0.01], starTime: 3000 }
     };
 
     const keys = { ArrowLeft: false, ArrowRight: false };
@@ -177,18 +177,44 @@
         if (!isPlaying) return;
         
         let objSize = Math.max(30, Math.min(60, canvas.width * 0.08));
+        const settings = diffSettings[currentDiff];
+        const r = Math.random();
         
-        // 🌟 防重疊機制 (Anti-Overlap System) 🌟
+        let symbol = ''; let type = 'symbol'; 
+        let targetProb = settings.rates[0]; let validProb = settings.rates[1]; let trapProb = settings.rates[2]; let clockProb = settings.rates[3];
+        let validTargets = getValidTargets();
+        
+        // 紀錄呢一粒係咪「急需目標符號」
+        let isTarget = false;
+
+        if (r < clockProb) { symbol = '⏰'; type = 'clock'; }
+        else if (r < clockProb + settings.rates[4]) { symbol = '⭐'; type = 'star'; }
+        else if (r < clockProb + settings.rates[4] + trapProb) { symbol = trapSymbols[Math.floor(Math.random() * trapSymbols.length)]; type = 'trap'; }
+        else if (r < clockProb + settings.rates[4] + trapProb + targetProb && validTargets.length > 0) { 
+            symbol = validTargets[Math.floor(Math.random() * validTargets.length)]; 
+            isTarget = true; // 標記為目標符號
+        }
+        else { symbol = allValidSymbols[Math.floor(Math.random() * allValidSymbols.length)]; }
+
+        // 🌟 防重疊機制 + 智能追蹤 (Proximity Spawn) 🌟
         let newX;
         let overlap = true;
         let attempts = 0;
         
         while (overlap && attempts < 10) {
-            newX = objSize + Math.random() * (canvas.width - objSize * 2);
+            if (isTarget) {
+                // 如果係目標符號，強制喺蘋果附近 (左右 30% 畫面闊度內) 降落！
+                let minX = Math.max(objSize, player.x - canvas.width * 0.3);
+                let maxX = Math.min(canvas.width - objSize, player.x + canvas.width * 0.3);
+                newX = minX + Math.random() * (maxX - minX);
+            } else {
+                // 否則全畫面隨機降落
+                newX = objSize + Math.random() * (canvas.width - objSize * 2);
+            }
+            
             overlap = false;
             for (let i = 0; i < fallingObjects.length; i++) {
                 let existingObj = fallingObjects[i];
-                // 如果畫面頂部 (y 較細) 已經有物件，且 X 距離太近 (< objSize * 1.5)，就當作重疊
                 if (existingObj.y < objSize * 2.5 && Math.abs(existingObj.x - newX) < objSize * 1.5) {
                     overlap = true;
                     break;
@@ -197,28 +223,20 @@
             attempts++;
         }
         
-        // 如果試咗 10 次都搵唔到無重疊嘅位，今次就唔跌嘢，保持畫面清晰
         if (overlap) return; 
 
-        const settings = diffSettings[currentDiff];
-        const r = Math.random();
-        let symbol = ''; let type = 'symbol'; 
-        let targetProb = settings.rates[0]; let validProb = settings.rates[1]; let trapProb = settings.rates[2]; let clockProb = settings.rates[3];
-        let validTargets = getValidTargets();
-
-        if (r < clockProb) { symbol = '⏰'; type = 'clock'; }
-        else if (r < clockProb + settings.rates[4]) { symbol = '⭐'; type = 'star'; }
-        else if (r < clockProb + settings.rates[4] + trapProb) { symbol = trapSymbols[Math.floor(Math.random() * trapSymbols.length)]; type = 'trap'; }
-        else if (r < clockProb + settings.rates[4] + trapProb + targetProb && validTargets.length > 0) { symbol = validTargets[Math.floor(Math.random() * validTargets.length)]; }
-        else { symbol = allValidSymbols[Math.floor(Math.random() * allValidSymbols.length)]; }
-
         let speed = canvas.height * settings.speedBase * (0.8 + Math.random() * 0.4);
-
         fallingObjects.push({ symbol: symbol, type: type, x: newX, y: -objSize, size: objSize, speed: speed });
     }
 
     function activateStar() { playSound('success'); isInvincible = true; powerUpMsg.innerText = "⭐⭐ 公式護盾 ⭐⭐"; powerUpMsg.style.opacity = "1"; if (invincibleTimer) clearTimeout(invincibleTimer); invincibleTimer = setTimeout(() => { isInvincible = false; powerUpMsg.style.opacity = "0"; }, diffSettings[currentDiff].starTime); }
-    function activateClock() { playSound('success'); totalBonusTime += 3; powerUpMsg.innerText = "⏰ 時間 +3 秒 ⏰"; powerUpMsg.style.opacity = "1"; setTimeout(() => { if(!isInvincible) powerUpMsg.style.opacity = "0"; }, 1500); }
+    
+    // 🌟 時鐘增加改為 +4 秒
+    function activateClock() { 
+        playSound('success'); totalBonusTime += 4; 
+        powerUpMsg.innerText = "⏰ 時間 +4 秒 ⏰"; powerUpMsg.style.opacity = "1"; 
+        setTimeout(() => { if(!isInvincible) powerUpMsg.style.opacity = "0"; }, 1500); 
+    }
 
     function drawBlock(obj) {
         ctx.font = `bold ${obj.size * 0.7}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -240,7 +258,8 @@
         if (!isPlaying) return; ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         let now = Date.now(); let elapsed = (now - startTime) / 1000;
-        currentDisplayTime = Math.max(0, 30.00 + totalBonusTime - elapsed);
+        // 🌟 計算顯示時間，由 33 秒開始
+        currentDisplayTime = Math.max(0, 33.00 + totalBonusTime - elapsed);
         timeDisplay.innerText = `時間: ${currentDisplayTime.toFixed(2)}s`;
 
         if (currentDisplayTime <= 0) { endGame(); return; }
@@ -290,10 +309,10 @@
             if (obj.y > canvas.height + obj.size || obj.y < -100) fallingObjects.splice(i, 1); 
         }
         
-        // 🌟 降低掉落頻率 (Spawn Rate) 🌟
-        let spawnRate = 0.025; 
-        if (currentDiff === 'hard') spawnRate = 0.035; 
-        if (currentDiff === 'very_hard') spawnRate = 0.045; 
+        // 🌟 減少了整體掉落機率 (~30%)，令畫面乾淨
+        let spawnRate = 0.018; 
+        if (currentDiff === 'hard') spawnRate = 0.025; 
+        if (currentDiff === 'very_hard') spawnRate = 0.032; 
         
         if (Math.random() < spawnRate) spawnObject();
         
@@ -305,11 +324,12 @@
         for(let radio of difficultyRadios) { if(radio.checked) currentDiff = radio.value; }
 
         completedFormulas = []; currentInput = []; fallingObjects = []; 
-        totalBonusTime = 0; startTime = Date.now(); currentDisplayTime = 30.00;
+        totalBonusTime = 0; startTime = Date.now(); currentDisplayTime = 33.00; // 重置為 33 秒
         player.x = canvas.width / 2; isPlaying = true; isInvincible = false; powerUpMsg.style.opacity = "0";
         if(invincibleTimer) clearTimeout(invincibleTimer);
         
         scoreDisplay.innerText = `完成: 0/4`; updateEquationDisplay();
+        timeDisplay.innerText = `時間: 33.00s`; // 初始 UI 更新
         overlay.classList.add('hidden'); 
 
         if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -321,7 +341,8 @@
         
         startBtn.innerText = "上傳成績中..."; startBtn.disabled = true;
 
-        let finalTimeUsed = allCompleted ? (30.00 + totalBonusTime - currentDisplayTime).toFixed(2) : "30.00";
+        // 🌟 結算時間同樣基於 33 秒計算
+        let finalTimeUsed = allCompleted ? (33.00 + totalBonusTime - currentDisplayTime).toFixed(2) : "33.00";
         await saveScoreToCloud(completedFormulas.length, finalTimeUsed, diffSettings[currentDiff].name, currentPlayerName);
         await renderLeaderboard();
 

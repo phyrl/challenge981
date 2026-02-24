@@ -3,39 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 v0.8.2</title>
+<title>蘋果的考驗 v0.8.3</title>
 <style>
     body { margin: 0; padding: 0; background-color: #2c3e50; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; color: white; }
     #gameContainer { position: relative; width: 100vw; height: 100vh; background-color: #34495e; overflow: hidden; }
     canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-    
     #ui { position: absolute; top: 10px; left: 15px; right: 15px; display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; pointer-events: none; z-index: 5; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
     #versionTag { font-size: 12px; opacity: 0.6; font-weight: normal; }
-
     #equationHeader { position: absolute; top: 45px; left: 0; right: 0; text-align: center; z-index: 5; pointer-events: none; padding: 10px; }
     #targetEquation { font-size: clamp(18px, 6vw, 36px); font-weight: bold; color: #f1c40f; background: rgba(0,0,0,0.6); padding: 12px; border-radius: 12px; display: inline-block; letter-spacing: 2px; min-width: 85%; box-shadow: 0 4px 15px rgba(0,0,0,0.3); line-height: 1.4; }
     .next-char { color: #ffffff; text-decoration: underline; text-underline-offset: 6px; animation: blink 0.8s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    
     #powerUpMsg { position: absolute; top: 160px; left: 50%; transform: translateX(-50%); font-size: 22px; font-weight: bold; color: #2ecc71; text-shadow: 0 0 10px #27ae60; opacity: 0; transition: opacity 0.3s; z-index: 5; }
-
     #controls { position: absolute; bottom: 25px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; padding: 0 10px; z-index: 10; pointer-events: none; }
     .control-btn { width: 65px; height: 65px; border-radius: 15px; background: rgba(0, 0, 0, 0.6); color: white; font-size: 24px; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; user-select: none; border: 2px solid rgba(255,255,255,0.3); box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
     .control-btn:active { background: rgba(231, 76, 60, 0.8); transform: translateY(2px); }
     .fast-btn { background: rgba(52, 73, 94, 0.8); width: 75px; font-weight: bold; }
-
     #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 20; padding: 20px; box-sizing: border-box; overflow-y: auto; }
     #playerName { font-size: 18px; padding: 12px; border-radius: 8px; border: none; width: 80%; max-width: 250px; margin: 10px 0; text-align: center; text-transform: uppercase; }
-    
     #rulesBox { background: rgba(241, 196, 15, 0.15); border: 1px solid #f1c40f; border-radius: 10px; padding: 15px; margin: 10px 0; width: 90%; max-width: 400px; font-size: 14px; text-align: left; color: #ecf0f1; }
-    #rulesBox b { color: #f1c40f; }
-
     #difficultyUI { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0; }
     .diff-label { background: #444; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: 0.3s; font-size: 13px; }
     input[type="radio"]:checked + .diff-label { border-color: #e74c3c; background: #c0392b; }
-    
     button.start { padding: 12px 50px; font-size: 24px; cursor: pointer; border: none; border-radius: 50px; background-color: #e74c3c; color: white; font-weight: bold; margin-top: 10px; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4); }
-    
     #leaderboard { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; width: 95%; max-width: 400px; margin: 10px 0; font-size: 13px; text-align: left; }
     .hidden { display: none !important; }
 </style>
@@ -46,10 +36,10 @@
     <div id="ui">
         <div id="timeDisplay">時間: 49.50s</div>
         <div id="scoreDisplay">進度: 0/4</div>
-        <div id="versionTag">v0.8.2</div>
+        <div id="versionTag">v0.8.3</div>
     </div>
     <div id="equationHeader">
-        <div id="targetEquation">準備中...</div>
+        <div id="targetEquation">載入中...</div>
     </div>
     <div id="powerUpMsg">⭐⭐ 公式護盾 ⭐⭐</div>
     <canvas id="gameCanvas"></canvas>
@@ -62,29 +52,23 @@
     </div>
 
     <div id="overlay">
-        <div style="font-size: 12px; opacity: 0.5;">VERSION 0.8.2</div>
+        <div style="font-size: 12px; opacity: 0.5;">VERSION 0.8.3</div>
         <h1 style="color: #e74c3c; margin: 5px 0; font-size: 32px;">🍎 蘋果的考驗</h1>
-        
         <div id="rulesBox">
             <h3 style="margin: 0 0 10px 0; text-align: center;">📜 遊戲玩法</h3>
-            1. 依上方黃色公式順序接取符號。<br>
-            2. <b>時鐘 (⏰)</b>：加 5 秒。<b>星星 (⭐)</b>：護盾。<br>
-            3. <b>操作：</b><br>
-            　• 手機：使用下方 4 個按鈕。<br>
-            　• 電腦：<b>← / →</b> 微調，按住 <b>Shift</b> 加速衝刺。<br>
-            4. <b>難度 19.62+</b>：接錯字元公式會 Reset。
+            1. 按順序接字元。<b>正確字元會提前出現</b>，節奏更快！<br>
+            2. <b>⏰ 時鐘</b>：加 5 秒。<b>⭐ 星星</b>：護盾。<br>
+            3. <b>電腦操作：</b> ← / → 微調，按住 <b>Shift</b> 加速。<br>
+            4. <b>穩定性修復：</b> 解決公式切換時的 Hang 機問題。
         </div>
-
         <div id="finalScore" class="hidden" style="font-size: 18px; margin: 10px; color: #f1c40f; font-weight: bold;"></div>
-        <input type="text" id="playerName" maxlength="10" placeholder="輸入名字 (最多10個字母)">
-        
+        <input type="text" id="playerName" maxlength="10" placeholder="輸入名字">
         <div id="difficultyUI">
             <input type="radio" name="diff" value="0" id="d0" checked class="hidden"><label for="d0" class="diff-label">難度 0</label>
             <input type="radio" name="diff" value="9.81" id="d1" class="hidden"><label for="d1" class="diff-label">難度 9.81</label>
             <input type="radio" name="diff" value="19.62" id="d2" class="hidden"><label for="d2" class="diff-label">難度 19.62</label>
             <input type="radio" name="diff" value="39.24" id="d3" class="hidden"><label for="d3" class="diff-label">難度 39.24</label>
         </div>
-
         <div id="leaderboard">
             <h3 style="text-align:center; margin: 0 0 5px 0; font-size: 16px; color: #f1c40f;">🏆 雲端學霸榜</h3>
             <ol id="scoreList" style="margin: 0; padding-left: 25px;"><li>載入中...</li></ol>
@@ -97,7 +81,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // 🔴 🔴 請更換為你的 Firebase Config 🔴 🔴
     const firebaseConfig = {
       apiKey: "AIzaSyDoHHh-8Gm5tt_uWF4IPGIGfOTNYnAgHr4",
       authDomain: "physicsgame-rl.firebaseapp.com",
@@ -105,7 +88,7 @@
       storageBucket: "physicsgame-rl.firebasestorage.app",
       messagingSenderId: "68402923149",
       appId: "1:68402923149:web:0bb2be531b9e971a6544c4"
-    };
+     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -133,14 +116,19 @@
         '²': ['³', '2'], '½': ['⅓', '¼'], '2': ['3', 'z']
     };
 
-    let isPlaying = false, startTime, totalBonusTime = 0, currentDisplayTime = 49.50;
+    let isPlaying = false, startTime, totalBonusTime = 0;
     let currentFormulaIdx = 0, currentCharIdx = 0;
     let animationId, currentDiff = 0, isInvincible = false, invincibleTimer = null;
     let player = { x: 0, y: 0, size: 0 }, objects = [];
     let isSwitching = false;
-
-    // 控制狀態
     const controlState = { left: false, right: false, fastLeft: false, fastRight: false };
+
+    const diffSettings = {
+        '0':     { speed: 0.0035, correctProb: 0.65, clockProb: 0.04, penalty: 1, reset: false, star: false },
+        '9.81':  { speed: 0.0055, correctProb: 0.50, clockProb: 0.04, penalty: 2, reset: false, star: false },
+        '19.62': { speed: 0.0075, correctProb: 0.40, clockProb: 0.03, penalty: 0, reset: true,  star: true },
+        '39.24': { speed: 0.0100, correctProb: 0.30, clockProb: 0.03, penalty: 0, reset: true,  star: true }
+    };
 
     function resize() {
         canvas.width = window.innerWidth;
@@ -152,7 +140,6 @@
     window.addEventListener('resize', resize);
     resize();
 
-    // 手機/鼠標按鈕
     const setupBtn = (id, key) => {
         const el = document.getElementById(id);
         const start = (e) => { e.preventDefault(); controlState[key] = true; };
@@ -163,36 +150,17 @@
         el.addEventListener('mouseup', end);
         el.addEventListener('mouseleave', end);
     };
+    setupBtn('btnFastLeft', 'fastLeft'); setupBtn('btnLeft', 'left');
+    setupBtn('btnRight', 'right'); setupBtn('btnFastRight', 'fastRight');
 
-    setupBtn('btnFastLeft', 'fastLeft');
-    setupBtn('btnLeft', 'left');
-    setupBtn('btnRight', 'right');
-    setupBtn('btnFastRight', 'fastRight');
-
-    // 🌟 v0.8.2 鍵盤 Shift 加速優化邏輯 🌟
     window.addEventListener('keydown', e => {
-        const isShift = e.shiftKey;
-        if(e.key === 'ArrowLeft') {
-            if(isShift) { controlState.fastLeft = true; controlState.left = false; }
-            else { controlState.left = true; controlState.fastLeft = false; }
-        }
-        if(e.key === 'ArrowRight') {
-            if(isShift) { controlState.fastRight = true; controlState.right = false; }
-            else { controlState.right = true; controlState.fastRight = false; }
-        }
+        if(e.key === 'ArrowLeft') { if(e.shiftKey) controlState.fastLeft = true; else controlState.left = true; }
+        if(e.key === 'ArrowRight') { if(e.shiftKey) controlState.fastRight = true; else controlState.right = true; }
     });
-
     window.addEventListener('keyup', e => {
         if(e.key === 'ArrowLeft' || e.key === 'Shift') { controlState.left = false; controlState.fastLeft = false; }
         if(e.key === 'ArrowRight' || e.key === 'Shift') { controlState.right = false; controlState.fastRight = false; }
     });
-
-    const diffSettings = {
-        '0':     { speed: 0.0035, correctProb: 0.70, clockProb: 0.04, penalty: 1, reset: false, star: false },
-        '9.81':  { speed: 0.0055, correctProb: 0.55, clockProb: 0.04, penalty: 2, reset: false, star: false },
-        '19.62': { speed: 0.0075, correctProb: 0.45, clockProb: 0.03, penalty: 0, reset: true,  star: true },
-        '39.24': { speed: 0.0100, correctProb: 0.35, clockProb: 0.03, penalty: 0, reset: true,  star: true }
-    };
 
     function updateFormulaDisplay() {
         if (currentFormulaIdx >= formulas.length) return;
@@ -207,27 +175,36 @@
         scoreDisplay.innerText = `進度: ${currentFormulaIdx}/4`;
     }
 
+    // 🌟 v0.8.3 改進：預產邏輯 🌟
     function spawnObject() {
         if (!isPlaying || isSwitching || currentFormulaIdx >= formulas.length) return;
         const config = diffSettings[currentDiff];
-        const targetChar = formulas[currentFormulaIdx][currentCharIdx];
-        const rand = Math.random();
-        let char = '', type = 'distractor';
         
+        // 決定要產生的字元：
+        // 如果畫面上已經有目前的目標字元，或者隨機機率，就產出「下一個」字元
+        let targetChar = formulas[currentFormulaIdx][currentCharIdx];
+        let type = 'distractor';
+        const rand = Math.random();
+
         if (rand < config.clockProb) { char = '⏰'; type = 'clock'; }
         else if (rand < config.clockProb + 0.02 && config.star) { char = '⭐'; type = 'star'; }
-        else if (rand < config.clockProb + (config.star ? 0.02 : 0) + config.correctProb) { 
-            char = targetChar; type = 'correct'; 
-        }
-        else {
+        else if (rand < 0.6) { // 60% 機率生成「有意義」的字元
+            // 🌟 核心：如果目前字元已經在空中，就提早產出下一個字元
+            const nextIdx = currentCharIdx + 1;
+            if (nextIdx < formulas[currentFormulaIdx].length && Math.random() > 0.5) {
+                char = formulas[currentFormulaIdx][nextIdx];
+                type = 'future'; // 未來的正確字元
+            } else {
+                char = targetChar;
+                type = 'correct';
+            }
+        } else {
             const sim = distractorsMap[targetChar] || ['X', 'Y', 'Z'];
             char = sim[Math.floor(Math.random() * sim.length)];
         }
 
         const size = Math.min(canvas.width * 0.08, 45);
-        let x = (type === 'correct') ? 
-                player.x - (canvas.width * 0.25) + Math.random() * (canvas.width * 0.5) :
-                Math.random() * (canvas.width - size);
+        let x = Math.random() * (canvas.width - size);
         x = Math.max(size, Math.min(canvas.width - size, x));
         objects.push({ char, type, x, y: -size, size, speed: canvas.height * config.speed * (0.9 + Math.random() * 0.2) });
     }
@@ -237,19 +214,14 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         let now = Date.now();
-        currentDisplayTime = Math.max(0, 49.50 + totalBonusTime - (now - startTime)/1000);
-        timeDisplay.innerText = `時間: ${currentDisplayTime.toFixed(2)}s`;
-        if (currentDisplayTime <= 0) { endGame(false); return; }
+        let displayTime = Math.max(0, 49.50 + totalBonusTime - (now - startTime)/1000);
+        timeDisplay.innerText = `時間: ${displayTime.toFixed(2)}s`;
+        if (displayTime <= 0) { endGame(false); return; }
 
-        const microSpeed = canvas.width * 0.008; 
-        const fastSpeed = canvas.width * 0.028;  
-        
-        if (controlState.fastLeft) player.x -= fastSpeed;
-        else if (controlState.left) player.x -= microSpeed;
-        
-        if (controlState.fastRight) player.x += fastSpeed;
-        else if (controlState.right) player.x += microSpeed;
-
+        const microSpeed = canvas.width * 0.012; 
+        const fastSpeed = canvas.width * 0.035;  
+        if (controlState.fastLeft) player.x -= fastSpeed; else if (controlState.left) player.x -= microSpeed;
+        if (controlState.fastRight) player.x += fastSpeed; else if (controlState.right) player.x += microSpeed;
         player.x = Math.max(player.size/2, Math.min(canvas.width - player.size/2, player.x));
 
         ctx.font = `${player.size}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
@@ -260,15 +232,18 @@
             for (let i = objects.length - 1; i >= 0; i--) {
                 const o = objects[i]; o.y += o.speed;
                 ctx.font = `bold ${o.size}px Arial`;
-                ctx.fillStyle = (o.type === 'correct' && currentDiff == 0) ? '#f1c40f' : 'white';
+                // 視覺提示：目前的正確字元在難度0顯示金黃色
+                ctx.fillStyle = (o.char === formulas[currentFormulaIdx][currentCharIdx] && currentDiff == 0) ? '#f1c40f' : 'white';
                 ctx.fillText(o.char, o.x, o.y);
 
                 if (Math.hypot(player.x - o.x, player.y - o.y) < (player.size + o.size) * 0.45) {
-                    handleCatch(o); objects.splice(i, 1); continue;
+                    handleCatch(o);
+                    objects.splice(i, 1);
+                    continue;
                 }
                 if (o.y > canvas.height + 50) objects.splice(i, 1);
             }
-            if (Math.random() < 0.04) spawnObject();
+            if (Math.random() < 0.05) spawnObject();
         }
         animationId = requestAnimationFrame(gameLoop);
     }
@@ -276,19 +251,30 @@
     function handleCatch(obj) {
         if (!isPlaying || isSwitching) return;
         const config = diffSettings[currentDiff];
+        const targetChar = formulas[currentFormulaIdx][currentCharIdx];
+
         if (obj.type === 'clock') { totalBonusTime += 5; showMsg("⏰ 時間 +5 秒"); }
         else if (obj.type === 'star') { activateStar(); }
-        else if (obj.type === 'correct') {
+        else if (obj.char === targetChar) {
             currentCharIdx++;
             if (currentCharIdx >= formulas[currentFormulaIdx].length) {
-                isSwitching = true; objects = []; currentFormulaIdx++; currentCharIdx = 0; totalBonusTime += 5;
+                isSwitching = true; 
+                // 🌟 穩定性修復：清空物體並延遲切換
+                objects = []; 
+                currentFormulaIdx++; currentCharIdx = 0; totalBonusTime += 5;
                 showMsg("✅ 完成公式！加時 5s");
                 if (currentFormulaIdx >= formulas.length) { endGame(true); } 
-                else { setTimeout(() => { updateFormulaDisplay(); isSwitching = false; }, 200); }
+                else { 
+                    setTimeout(() => { 
+                        updateFormulaDisplay(); 
+                        isSwitching = false; 
+                    }, 500); // 增加緩衝時間防止 HANG
+                }
             } else { updateFormulaDisplay(); }
         } else {
+            // 接到「未來」的字元或干擾項
             if (isInvincible) { showMsg("🛡️ 已阻擋"); return; }
-            if (config.reset) { currentCharIdx = 0; showMsg("❌ 錯誤！公式重置"); }
+            if (config.reset) { currentCharIdx = 0; showMsg("❌ 順序錯誤！Reset"); }
             else { totalBonusTime -= config.penalty; showMsg(`❌ 錯誤！扣 ${config.penalty} 秒`); }
             updateFormulaDisplay();
         }
@@ -304,15 +290,18 @@
 
     async function endGame(win) {
         isPlaying = false; cancelAnimationFrame(animationId);
-        const timeUsed = (49.50 + totalBonusTime - currentDisplayTime).toFixed(2);
-        const pName = playerNameInput.value.trim().toUpperCase() || "ANONYMOUS";
-        document.getElementById('finalScore').innerText = win ? `🎉 成功！耗時：${timeUsed}s` : `時間到！只完成了 ${currentFormulaIdx} 條`;
+        const now = Date.now();
+        const timeUsed = (49.50 + totalBonusTime - (now - startTime)/1000).toFixed(2);
+        const finalTime = (49.50 + totalBonusTime - (now - startTime)/1000);
+        
+        document.getElementById('finalScore').innerText = win ? `🎉 成功！耗時：${(49.5 + totalBonusTime - finalTime).toFixed(2)}s` : `時間到！完成了 ${currentFormulaIdx} 條`;
         document.getElementById('finalScore').classList.remove('hidden');
         overlay.classList.remove('hidden');
         try {
-            const compositeScore = (currentFormulaIdx * 100000) + (win ? (100000 - Math.floor(parseFloat(timeUsed)*100)) : 0);
+            const pName = playerNameInput.value.trim().toUpperCase() || "ANONYMOUS";
+            const compositeScore = (currentFormulaIdx * 100000) + (win ? (100000 - Math.floor((49.5 + totalBonusTime - finalTime)*100)) : 0);
             await addDoc(collection(db, "physics_leaderboard"), {
-                name: pName, completed: currentFormulaIdx, timeUsed: timeUsed, difficulty: currentDiff, compositeScore, timestamp: new Date()
+                name: pName, completed: currentFormulaIdx, timeUsed: (49.5 + totalBonusTime - finalTime).toFixed(2), difficulty: currentDiff, compositeScore, timestamp: new Date()
             });
             renderLeaderboard();
         } catch (e) { console.error(e); }

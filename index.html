@@ -7,45 +7,28 @@
 <style>
     /* Reset and Liquid Fullscreen Setup */
     body { margin: 0; padding: 0; background-color: #2c3e50; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; color: white; }
-    
-    /* Container strictly follows window size for 100% fill */
     #gameContainer { position: relative; width: 100vw; height: 100vh; background-color: #34495e; overflow: hidden; }
     canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-    
-    /* Top UI */
     #ui { position: absolute; top: 15px; left: 15px; right: 15px; display: flex; justify-content: space-between; font-size: clamp(16px, 4vw, 24px); font-weight: bold; pointer-events: none; z-index: 2; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
-    
-    /* Current Equation Display */
     #equationDisplay { position: absolute; top: 60px; left: 0; right: 0; text-align: center; font-size: clamp(20px, 5vw, 36px); font-weight: bold; color: #f1c40f; pointer-events: none; z-index: 2; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); background: rgba(0,0,0,0.4); padding: 10px 0; letter-spacing: 5px;}
-    
     #powerUpMsg { position: absolute; top: 120px; left: 50%; transform: translateX(-50%); font-size: clamp(18px, 5vw, 24px); font-weight: bold; color: #2ecc71; text-shadow: 0 0 10px #27ae60, 2px 2px 4px rgba(0,0,0,0.8); opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 2; }
-    
-    /* Mobile controls */
     #controls { position: absolute; bottom: 30px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 10vw; z-index: 5; pointer-events: none; }
     .control-btn { width: min(18vw, 80px); height: min(18vw, 80px); border-radius: 50%; border: 3px solid rgba(255,255,255,0.6); background: rgba(0, 0, 0, 0.4); color: white; font-size: clamp(20px, 6vw, 36px); display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; user-select: none; transition: background 0.1s; }
     .control-btn:active { background: rgba(0, 0, 0, 0.7); transform: scale(0.95); }
-    
-    /* Overlay */
     #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 10; overflow-y: auto; padding: 20px; box-sizing: border-box;}
-    #overlay h1 { font-size: clamp(24px, 6vw, 40px); margin-bottom: 5px; color: #e74c3c; /* 蘋果紅 */ text-shadow: 0 0 10px rgba(231, 76, 60, 0.5); }
+    #overlay h1 { font-size: clamp(24px, 6vw, 40px); margin-bottom: 5px; color: #e74c3c; text-shadow: 0 0 10px rgba(231, 76, 60, 0.5); }
     #finalScore { font-size: clamp(18px, 4vw, 24px); margin-bottom: 10px; color: #ecf0f1; }
-    
     #playerName { font-size: clamp(16px, 4vw, 22px); padding: 10px; text-align: center; border-radius: 8px; border: 2px solid #fff; outline: none; text-transform: uppercase; width: 80%; max-width: 250px; margin-bottom: 15px; font-weight: bold; background: rgba(255,255,255,0.9); color: #2c3e50;}
-    
     #difficultyUI { margin-bottom: 15px; font-size: clamp(14px, 3.5vw, 18px); background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;}
     #difficultyUI label { cursor: pointer; display: flex; align-items: center; }
-    
-    /* Leaderboard */
     #leaderboard { background: rgba(255,255,255,0.1); padding: 15px 20px; border-radius: 10px; margin-bottom: 15px; text-align: left; width: 90%; max-width: 400px; }
     #leaderboard h3 { margin: 0 0 10px 0; color: #f1c40f; text-align: center; font-size: clamp(18px, 4vw, 24px);}
     #leaderboard ol { margin: 0; padding-left: 25px; font-size: clamp(14px, 4vw, 18px); line-height: 1.5;}
     .diff-badge { font-size: 12px; background: #e74c3c; padding: 2px 6px; border-radius: 4px; margin-left: 5px; color: white;}
     .name-badge { font-weight: bold; color: #3498db; margin-right: 10px; }
-    
     button.start { padding: 12px 40px; font-size: clamp(18px, 5vw, 24px); cursor: pointer; border: none; border-radius: 50px; background-color: #e74c3c; color: white; font-weight: bold; box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4); transition: 0.2s; margin-top: 10px;}
     button.start:hover { background-color: #c0392b; transform: scale(1.05); }
     button:disabled { background-color: #7f8c8d; cursor: not-allowed; transform: none;}
-    
     .hidden { display: none !important; }
 </style>
 </head>
@@ -58,29 +41,20 @@
     </div>
     <div id="equationDisplay">_</div>
     <div id="powerUpMsg">⭐⭐ 公式護盾 ⭐⭐</div>
-    
     <canvas id="gameCanvas"></canvas>
-    
     <div id="controls"><div class="control-btn" id="btnLeft">◀</div><div class="control-btn" id="btnRight">▶</div></div>
     
     <div id="overlay">
         <h1 id="gameOverTitle">🍎 牛頓的考驗 🍎<br>勻加速公式版</h1>
         <div id="finalScore" class="hidden">結果</div>
-        
         <input type="text" id="playerName" maxlength="10" placeholder="入名 (最多10個英文字)" autocomplete="off">
-        
-        <div id="leaderboard">
-            <h3>☁️ 雲端學霸榜 (Top 5)</h3>
-            <ol id="scoreList"><li>連線中...</li></ol>
-        </div>
-
+        <div id="leaderboard"><h3>☁️ 雲端學霸榜 (Top 5)</h3><ol id="scoreList"><li>連線中...</li></ol></div>
         <div id="difficultyUI">
             <label><input type="radio" name="diff" value="easy"> 難度 0</label>
             <label><input type="radio" name="diff" value="normal" checked> 難度 9.81</label>
             <label><input type="radio" name="diff" value="hard"> 難度 19.62</label>
             <label><input type="radio" name="diff" value="very_hard"> 難度 29.43</label>
         </div>
-
         <button class="start" id="startBtn">開始挑戰</button>
     </div>
 </div>
@@ -89,9 +63,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴
-    // 請將呢段換返做你自己嘅 Firebase Config 🔴
-    // 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴 🔴
+    // 🔴 🔴 🔴 請將呢段換返做你自己嘅 Firebase Config 🔴 🔴 🔴
     const firebaseConfig = {
       apiKey: "AIzaSyDoHHh-8Gm5tt_uWF4IPGIGfOTNYnAgHr4",
       authDomain: "physicsgame-rl.firebaseapp.com",
@@ -112,17 +84,11 @@
     const scoreList = document.getElementById('scoreList'); const difficultyRadios = document.getElementsByName('diff');
     const playerNameInput = document.getElementById('playerName');
 
-    // Handle canvas resize for liquid fullscreen
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas();
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
     playerNameInput.addEventListener('input', function() { this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase(); });
 
-    // Physics Formulas Definitions
     const formulas = [
         ['v', '=', 'u', '+', 'a', 't'],
         ['s', '=', '½', '(', 'u', '+', 'v', ')', 't'],
@@ -130,23 +96,14 @@
         ['v', '²', '=', 'u', '²', '+', '2', 'a', 's']
     ];
     
-    // Valid symbols pool
     const allValidSymbols = ['s', 'u', 'v', 'a', 't', '=', '+', '(', ')', '²', '½', '2'];
     const trapSymbols = ['4', '-', '¼', '√'];
 
-    // Game State
-    let isPlaying = false; 
-    let startTime = 0, totalBonusTime = 0, currentDisplayTime = 30.00;
-    let animationId; 
-    let currentDiff = 'normal';
-    let isInvincible = false, invincibleTimer = null; 
+    let isPlaying = false, startTime = 0, totalBonusTime = 0, currentDisplayTime = 30.00;
+    let animationId, currentDiff = 'normal', isInvincible = false, invincibleTimer = null; 
     let currentPlayerName = "STUDENT";
-    
-    // Equation tracking
-    let completedFormulas = []; // Stores index of completed formulas
-    let currentInput = []; // Symbols caught for current sequence
+    let completedFormulas = [], currentInput = [];
 
-    // Difficulty settings [Target%, Valid%, Trap%, Clock%, Star%]
     const diffSettings = {
         'easy': { name: '0', speedBase: 0.003, rates: [0.50, 0.47, 0.00, 0.03, 0.00], starTime: 0 },
         'normal': { name: '9.81', speedBase: 0.005, rates: [0.40, 0.57, 0.00, 0.03, 0.00], starTime: 0 },
@@ -154,7 +111,6 @@
         'very_hard': { name: '29.43', speedBase: 0.009, rates: [0.30, 0.40, 0.28, 0.01, 0.01], starTime: 3000 }
     };
 
-    // Controls
     const keys = { ArrowLeft: false, ArrowRight: false };
     window.addEventListener('keydown', (e) => { if (keys.hasOwnProperty(e.code)) { keys[e.code] = true; e.preventDefault(); } });
     window.addEventListener('keyup', (e) => { if (keys.hasOwnProperty(e.code)) keys[e.code] = false; });
@@ -164,11 +120,9 @@
     btnLeft.addEventListener('touchstart', pressLeft, {passive: false}); btnLeft.addEventListener('touchend', releaseLeft); btnLeft.addEventListener('mousedown', pressLeft); btnLeft.addEventListener('mouseup', releaseLeft); btnLeft.addEventListener('mouseleave', releaseLeft);
     btnRight.addEventListener('touchstart', pressRight, {passive: false}); btnRight.addEventListener('touchend', releaseRight); btnRight.addEventListener('mousedown', pressRight); btnRight.addEventListener('mouseup', releaseRight); btnRight.addEventListener('mouseleave', releaseRight);
 
-    // 🍎 Player Object updated to Apple
     let player = { emoji: '🍎', x: canvas.width / 2 };
     let fallingObjects = [];
 
-    // Audio
     const AudioContext = window.AudioContext || window.webkitAudioContext; let audioCtx;
     function playSound(type) {
         if (!audioCtx) return; const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); osc.connect(gainNode); gainNode.connect(audioCtx.destination);
@@ -177,10 +131,8 @@
         else if(type === 'success') { osc.type = 'square'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 0.1); osc.frequency.linearRampToValueAtTime(1000, audioCtx.currentTime + 0.3); gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4); osc.start(); osc.stop(audioCtx.currentTime + 0.4); }
     }
 
-    // Leaderboard logic
     async function renderLeaderboard() {
         try {
-            // Order by compositeScore descending
             const q = query(collection(db, "physics_leaderboard"), orderBy("compositeScore", "desc"), limit(5));
             const querySnapshot = await getDocs(q);
             scoreList.innerHTML = '';
@@ -198,19 +150,13 @@
 
     async function saveScoreToCloud(completed, timeUsed, diffName, pName) {
         try {
-            // Composite score: heavily weight completed count, then time (faster is higher score)
             let timeMs = Math.floor(parseFloat(timeUsed) * 100);
             let compositeScore = (completed * 100000);
             if (completed === 4) compositeScore += (100000 - timeMs); 
-
-            await addDoc(collection(db, "physics_leaderboard"), { 
-                name: pName, completed: completed, timeUsed: timeUsed, 
-                compositeScore: compositeScore, difficulty: diffName, timestamp: new Date() 
-            });
+            await addDoc(collection(db, "physics_leaderboard"), { name: pName, completed: completed, timeUsed: timeUsed, compositeScore: compositeScore, difficulty: diffName, timestamp: new Date() });
         } catch (error) { console.error("Error saving score:", error); }
     }
 
-    // Logic: Get valid next symbols based on current input
     function getValidTargets() {
         if (currentInput.length === 0) {
             let valid = new Set();
@@ -230,70 +176,59 @@
     function spawnObject() {
         if (!isPlaying) return;
         
+        let objSize = Math.max(30, Math.min(60, canvas.width * 0.08));
+        
+        // 🌟 防重疊機制 (Anti-Overlap System) 🌟
+        let newX;
+        let overlap = true;
+        let attempts = 0;
+        
+        while (overlap && attempts < 10) {
+            newX = objSize + Math.random() * (canvas.width - objSize * 2);
+            overlap = false;
+            for (let i = 0; i < fallingObjects.length; i++) {
+                let existingObj = fallingObjects[i];
+                // 如果畫面頂部 (y 較細) 已經有物件，且 X 距離太近 (< objSize * 1.5)，就當作重疊
+                if (existingObj.y < objSize * 2.5 && Math.abs(existingObj.x - newX) < objSize * 1.5) {
+                    overlap = true;
+                    break;
+                }
+            }
+            attempts++;
+        }
+        
+        // 如果試咗 10 次都搵唔到無重疊嘅位，今次就唔跌嘢，保持畫面清晰
+        if (overlap) return; 
+
         const settings = diffSettings[currentDiff];
         const r = Math.random();
-        let symbol = '';
-        let type = 'symbol'; 
-        
-        let targetProb = settings.rates[0];
-        let validProb = settings.rates[1];
-        let trapProb = settings.rates[2];
-        let clockProb = settings.rates[3];
-        
+        let symbol = ''; let type = 'symbol'; 
+        let targetProb = settings.rates[0]; let validProb = settings.rates[1]; let trapProb = settings.rates[2]; let clockProb = settings.rates[3];
         let validTargets = getValidTargets();
 
         if (r < clockProb) { symbol = '⏰'; type = 'clock'; }
         else if (r < clockProb + settings.rates[4]) { symbol = '⭐'; type = 'star'; }
-        else if (r < clockProb + settings.rates[4] + trapProb) {
-            symbol = trapSymbols[Math.floor(Math.random() * trapSymbols.length)];
-            type = 'trap';
-        }
-        else if (r < clockProb + settings.rates[4] + trapProb + targetProb && validTargets.length > 0) {
-            symbol = validTargets[Math.floor(Math.random() * validTargets.length)];
-        }
-        else {
-            symbol = allValidSymbols[Math.floor(Math.random() * allValidSymbols.length)];
-        }
+        else if (r < clockProb + settings.rates[4] + trapProb) { symbol = trapSymbols[Math.floor(Math.random() * trapSymbols.length)]; type = 'trap'; }
+        else if (r < clockProb + settings.rates[4] + trapProb + targetProb && validTargets.length > 0) { symbol = validTargets[Math.floor(Math.random() * validTargets.length)]; }
+        else { symbol = allValidSymbols[Math.floor(Math.random() * allValidSymbols.length)]; }
 
-        let objSize = Math.max(30, Math.min(60, canvas.width * 0.08));
         let speed = canvas.height * settings.speedBase * (0.8 + Math.random() * 0.4);
 
-        fallingObjects.push({
-            symbol: symbol, type: type,
-            x: objSize + Math.random() * (canvas.width - objSize * 2),
-            y: -objSize, size: objSize, speed: speed
-        });
+        fallingObjects.push({ symbol: symbol, type: type, x: newX, y: -objSize, size: objSize, speed: speed });
     }
 
-    function activateStar() { 
-        playSound('success'); isInvincible = true; 
-        powerUpMsg.innerText = "⭐⭐ 公式護盾 ⭐⭐"; powerUpMsg.style.opacity = "1"; 
-        if (invincibleTimer) clearTimeout(invincibleTimer); 
-        invincibleTimer = setTimeout(() => { isInvincible = false; powerUpMsg.style.opacity = "0"; }, diffSettings[currentDiff].starTime); 
-    }
-    
-    function activateClock() { 
-        playSound('success'); totalBonusTime += 3; 
-        powerUpMsg.innerText = "⏰ 時間 +3 秒 ⏰"; powerUpMsg.style.opacity = "1"; 
-        setTimeout(() => { if(!isInvincible) powerUpMsg.style.opacity = "0"; }, 1500); 
-    }
+    function activateStar() { playSound('success'); isInvincible = true; powerUpMsg.innerText = "⭐⭐ 公式護盾 ⭐⭐"; powerUpMsg.style.opacity = "1"; if (invincibleTimer) clearTimeout(invincibleTimer); invincibleTimer = setTimeout(() => { isInvincible = false; powerUpMsg.style.opacity = "0"; }, diffSettings[currentDiff].starTime); }
+    function activateClock() { playSound('success'); totalBonusTime += 3; powerUpMsg.innerText = "⏰ 時間 +3 秒 ⏰"; powerUpMsg.style.opacity = "1"; setTimeout(() => { if(!isInvincible) powerUpMsg.style.opacity = "0"; }, 1500); }
 
     function drawBlock(obj) {
-        ctx.font = `bold ${obj.size * 0.7}px Arial`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        
-        if (obj.type === 'clock' || obj.type === 'star' || obj.symbol === '🍎' || obj.symbol === '🎉' || obj.symbol === '💯') {
-            ctx.fillText(obj.symbol, obj.x, obj.y);
-            return;
-        }
+        ctx.font = `bold ${obj.size * 0.7}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        if (obj.type === 'clock' || obj.type === 'star' || obj.symbol === '🍎' || obj.symbol === '🎉' || obj.symbol === '💯') { ctx.fillText(obj.symbol, obj.x, obj.y); return; }
 
         let bgColor = '#ecf0f1'; let textColor = '#2c3e50';
         if (obj.type === 'trap') { bgColor = '#e74c3c'; textColor = 'white'; }
         
-        ctx.fillStyle = bgColor;
-        ctx.beginPath(); ctx.roundRect(obj.x - obj.size/2, obj.y - obj.size/2, obj.size, obj.size, 8); ctx.fill();
-        ctx.fillStyle = textColor;
-        ctx.fillText(obj.symbol, obj.x, obj.y);
+        ctx.fillStyle = bgColor; ctx.beginPath(); ctx.roundRect(obj.x - obj.size/2, obj.y - obj.size/2, obj.size, obj.size, 8); ctx.fill();
+        ctx.fillStyle = textColor; ctx.fillText(obj.symbol, obj.x, obj.y);
     }
 
     function updateEquationDisplay() {
@@ -304,15 +239,13 @@
     function update() {
         if (!isPlaying) return; ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        let now = Date.now();
-        let elapsed = (now - startTime) / 1000;
+        let now = Date.now(); let elapsed = (now - startTime) / 1000;
         currentDisplayTime = Math.max(0, 30.00 + totalBonusTime - elapsed);
         timeDisplay.innerText = `時間: ${currentDisplayTime.toFixed(2)}s`;
 
         if (currentDisplayTime <= 0) { endGame(); return; }
 
-        player.size = Math.max(50, Math.min(100, canvas.width * 0.12));
-        player.y = canvas.height - player.size;
+        player.size = Math.max(50, Math.min(100, canvas.width * 0.12)); player.y = canvas.height - player.size;
         let pSpeed = canvas.width * 0.015;
 
         if (keys.ArrowLeft && player.x > player.size / 2) player.x -= pSpeed; 
@@ -335,29 +268,20 @@
                 else if (obj.type === 'clock') activateClock(); 
                 else {
                     if (validTargets.includes(obj.symbol)) {
-                        playSound('catch');
-                        currentInput.push(obj.symbol);
-                        
+                        playSound('catch'); currentInput.push(obj.symbol);
                         formulas.forEach((f, idx) => {
                             if (!completedFormulas.includes(idx) && currentInput.join('') === f.join('')) {
-                                completedFormulas.push(idx);
-                                currentInput = []; 
-                                scoreDisplay.innerText = `完成: ${completedFormulas.length}/4`;
-                                playSound('success');
+                                completedFormulas.push(idx); currentInput = []; 
+                                scoreDisplay.innerText = `完成: ${completedFormulas.length}/4`; playSound('success');
                                 fallingObjects.push({symbol: '💯', type: 'reward', x: player.x, y: player.y - 50, size: 80, speed: -2});
                             }
                         });
-
                         updateEquationDisplay();
-                        
                         if (completedFormulas.length === 4) { endGame(true); return; } 
                     } else {
                         if (!isInvincible) {
-                            playSound('error');
-                            currentInput = []; 
-                            updateEquationDisplay();
-                            equationDisplay.style.color = '#e74c3c';
-                            setTimeout(()=> equationDisplay.style.color = '#f1c40f', 300);
+                            playSound('error'); currentInput = []; updateEquationDisplay();
+                            equationDisplay.style.color = '#e74c3c'; setTimeout(()=> equationDisplay.style.color = '#f1c40f', 300);
                         }
                     }
                 }
@@ -366,7 +290,11 @@
             if (obj.y > canvas.height + obj.size || obj.y < -100) fallingObjects.splice(i, 1); 
         }
         
-        let spawnRate = 0.04; if (currentDiff === 'hard') spawnRate = 0.06; if (currentDiff === 'very_hard') spawnRate = 0.08; 
+        // 🌟 降低掉落頻率 (Spawn Rate) 🌟
+        let spawnRate = 0.025; 
+        if (currentDiff === 'hard') spawnRate = 0.035; 
+        if (currentDiff === 'very_hard') spawnRate = 0.045; 
+        
         if (Math.random() < spawnRate) spawnObject();
         
         animationId = requestAnimationFrame(update);
@@ -385,8 +313,7 @@
         overlay.classList.add('hidden'); 
 
         if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume();
-        resizeCanvas();
-        update();
+        resizeCanvas(); update();
     }
 
     async function endGame(allCompleted = false) {
@@ -395,7 +322,6 @@
         startBtn.innerText = "上傳成績中..."; startBtn.disabled = true;
 
         let finalTimeUsed = allCompleted ? (30.00 + totalBonusTime - currentDisplayTime).toFixed(2) : "30.00";
-        
         await saveScoreToCloud(completedFormulas.length, finalTimeUsed, diffSettings[currentDiff].name, currentPlayerName);
         await renderLeaderboard();
 

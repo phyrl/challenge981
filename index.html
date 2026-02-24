@@ -3,26 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 - 順序背誦版</title>
+<title>蘋果的考驗 v0.8.2</title>
 <style>
     body { margin: 0; padding: 0; background-color: #2c3e50; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; color: white; }
     #gameContainer { position: relative; width: 100vw; height: 100vh; background-color: #34495e; overflow: hidden; }
     canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-    #ui { position: absolute; top: 10px; left: 15px; right: 15px; display: flex; justify-content: space-between; font-size: 20px; font-weight: bold; pointer-events: none; z-index: 5; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
-    #equationHeader { position: absolute; top: 50px; left: 0; right: 0; text-align: center; z-index: 5; pointer-events: none; padding: 10px; }
+    
+    #ui { position: absolute; top: 10px; left: 15px; right: 15px; display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; pointer-events: none; z-index: 5; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+    #versionTag { font-size: 12px; opacity: 0.6; font-weight: normal; }
+
+    #equationHeader { position: absolute; top: 45px; left: 0; right: 0; text-align: center; z-index: 5; pointer-events: none; padding: 10px; }
     #targetEquation { font-size: clamp(18px, 6vw, 36px); font-weight: bold; color: #f1c40f; background: rgba(0,0,0,0.6); padding: 12px; border-radius: 12px; display: inline-block; letter-spacing: 2px; min-width: 85%; box-shadow: 0 4px 15px rgba(0,0,0,0.3); line-height: 1.4; }
     .next-char { color: #ffffff; text-decoration: underline; text-underline-offset: 6px; animation: blink 0.8s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    
     #powerUpMsg { position: absolute; top: 160px; left: 50%; transform: translateX(-50%); font-size: 22px; font-weight: bold; color: #2ecc71; text-shadow: 0 0 10px #27ae60; opacity: 0; transition: opacity 0.3s; z-index: 5; }
-    #controls { position: absolute; bottom: 30px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 10vw; z-index: 10; pointer-events: none; }
-    .control-btn { width: 75px; height: 75px; border-radius: 50%; background: rgba(0, 0, 0, 0.5); color: white; font-size: 32px; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; user-select: none; border: 2px solid rgba(255,255,255,0.3); }
-    #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 20; padding: 20px; box-sizing: border-box; }
+
+    #controls { position: absolute; bottom: 25px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; padding: 0 10px; z-index: 10; pointer-events: none; }
+    .control-btn { width: 65px; height: 65px; border-radius: 15px; background: rgba(0, 0, 0, 0.6); color: white; font-size: 24px; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; user-select: none; border: 2px solid rgba(255,255,255,0.3); box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
+    .control-btn:active { background: rgba(231, 76, 60, 0.8); transform: translateY(2px); }
+    .fast-btn { background: rgba(52, 73, 94, 0.8); width: 75px; font-weight: bold; }
+
+    #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 20; padding: 20px; box-sizing: border-box; overflow-y: auto; }
     #playerName { font-size: 18px; padding: 12px; border-radius: 8px; border: none; width: 80%; max-width: 250px; margin: 10px 0; text-align: center; text-transform: uppercase; }
+    
+    #rulesBox { background: rgba(241, 196, 15, 0.15); border: 1px solid #f1c40f; border-radius: 10px; padding: 15px; margin: 10px 0; width: 90%; max-width: 400px; font-size: 14px; text-align: left; color: #ecf0f1; }
+    #rulesBox b { color: #f1c40f; }
+
     #difficultyUI { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0; }
     .diff-label { background: #444; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: 0.3s; font-size: 13px; }
     input[type="radio"]:checked + .diff-label { border-color: #e74c3c; background: #c0392b; }
-    button.start { padding: 12px 40px; font-size: 22px; cursor: pointer; border: none; border-radius: 50px; background-color: #e74c3c; color: white; font-weight: bold; margin-top: 15px; }
-    #leaderboard { background: rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; width: 95%; max-width: 400px; margin: 10px 0; font-size: 13px; text-align: left; }
+    
+    button.start { padding: 12px 50px; font-size: 24px; cursor: pointer; border: none; border-radius: 50px; background-color: #e74c3c; color: white; font-weight: bold; margin-top: 10px; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4); }
+    
+    #leaderboard { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 10px; width: 95%; max-width: 400px; margin: 10px 0; font-size: 13px; text-align: left; }
     .hidden { display: none !important; }
 </style>
 </head>
@@ -32,31 +46,48 @@
     <div id="ui">
         <div id="timeDisplay">時間: 49.50s</div>
         <div id="scoreDisplay">進度: 0/4</div>
+        <div id="versionTag">v0.8.2</div>
     </div>
     <div id="equationHeader">
-        <div style="font-size:14px; color:#bdc3c7; margin-bottom:4px;">請順序接取符號：</div>
         <div id="targetEquation">準備中...</div>
     </div>
     <div id="powerUpMsg">⭐⭐ 公式護盾 ⭐⭐</div>
     <canvas id="gameCanvas"></canvas>
+    
     <div id="controls">
+        <div class="control-btn fast-btn" id="btnFastLeft">◀◀</div>
         <div class="control-btn" id="btnLeft">◀</div>
         <div class="control-btn" id="btnRight">▶</div>
+        <div class="control-btn fast-btn" id="btnFastRight">▶▶</div>
     </div>
+
     <div id="overlay">
-        <h1 style="color: #e74c3c; margin: 0; font-size: 28px;">🍎 蘋果的考驗</h1>
-        <p style="color: #f1c40f; margin: 5px;">物理勻加速公式挑戰</p>
-        <div id="finalScore" class="hidden" style="font-size: 16px; margin: 8px; color: #fff;"></div>
-        <input type="text" id="playerName" maxlength="10" placeholder="你的名字">
+        <div style="font-size: 12px; opacity: 0.5;">VERSION 0.8.2</div>
+        <h1 style="color: #e74c3c; margin: 5px 0; font-size: 32px;">🍎 蘋果的考驗</h1>
+        
+        <div id="rulesBox">
+            <h3 style="margin: 0 0 10px 0; text-align: center;">📜 遊戲玩法</h3>
+            1. 依上方黃色公式順序接取符號。<br>
+            2. <b>時鐘 (⏰)</b>：加 5 秒。<b>星星 (⭐)</b>：護盾。<br>
+            3. <b>操作：</b><br>
+            　• 手機：使用下方 4 個按鈕。<br>
+            　• 電腦：<b>← / →</b> 微調，按住 <b>Shift</b> 加速衝刺。<br>
+            4. <b>難度 19.62+</b>：接錯字元公式會 Reset。
+        </div>
+
+        <div id="finalScore" class="hidden" style="font-size: 18px; margin: 10px; color: #f1c40f; font-weight: bold;"></div>
+        <input type="text" id="playerName" maxlength="10" placeholder="輸入名字 (最多10個字母)">
+        
         <div id="difficultyUI">
             <input type="radio" name="diff" value="0" id="d0" checked class="hidden"><label for="d0" class="diff-label">難度 0</label>
             <input type="radio" name="diff" value="9.81" id="d1" class="hidden"><label for="d1" class="diff-label">難度 9.81</label>
             <input type="radio" name="diff" value="19.62" id="d2" class="hidden"><label for="d2" class="diff-label">難度 19.62</label>
             <input type="radio" name="diff" value="39.24" id="d3" class="hidden"><label for="d3" class="diff-label">難度 39.24</label>
         </div>
+
         <div id="leaderboard">
-            <h3 style="text-align:center; margin-top:0; font-size: 18px; color: #f1c40f;">☁️ 雲端榜 (Top 5)</h3>
-            <ol id="scoreList"><li>載入中...</li></ol>
+            <h3 style="text-align:center; margin: 0 0 5px 0; font-size: 16px; color: #f1c40f;">🏆 雲端學霸榜</h3>
+            <ol id="scoreList" style="margin: 0; padding-left: 25px;"><li>載入中...</li></ol>
         </div>
         <button class="start" id="startBtn">開始挑戰 (49.5s)</button>
     </div>
@@ -108,32 +139,60 @@
     let player = { x: 0, y: 0, size: 0 }, objects = [];
     let isSwitching = false;
 
-    const keys = { ArrowLeft: false, ArrowRight: false };
-
-    // 🌟 優化機率：大幅增加 Correct% 減少 Distractor%
-    const diffSettings = {
-        '0':     { speed: 0.0035, correctProb: 0.70, clockProb: 0.04, penalty: 1, reset: false, star: false },
-        '9.81':  { speed: 0.0055, correctProb: 0.55, clockProb: 0.04, penalty: 2, reset: false, star: false },
-        '19.62': { speed: 0.0075, correctProb: 0.45, clockProb: 0.03, penalty: 0, reset: true,  star: true },
-        '39.24': { speed: 0.0100, correctProb: 0.35, clockProb: 0.03, penalty: 0, reset: true,  star: true }
-    };
+    // 控制狀態
+    const controlState = { left: false, right: false, fastLeft: false, fastRight: false };
 
     function resize() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         player.size = Math.min(canvas.width * 0.12, 70);
         player.x = canvas.width / 2;
-        player.y = canvas.height - player.size - 20;
+        player.y = canvas.height - player.size - 25;
     }
     window.addEventListener('resize', resize);
     resize();
 
-    const bLeft = document.getElementById('btnLeft');
-    const bRight = document.getElementById('btnRight');
-    bLeft.addEventListener('touchstart', (e) => { e.preventDefault(); keys.ArrowLeft = true; }, {passive:false});
-    bLeft.addEventListener('touchend', () => keys.ArrowLeft = false);
-    bRight.addEventListener('touchstart', (e) => { e.preventDefault(); keys.ArrowRight = true; }, {passive:false});
-    bRight.addEventListener('touchend', () => keys.ArrowRight = false);
+    // 手機/鼠標按鈕
+    const setupBtn = (id, key) => {
+        const el = document.getElementById(id);
+        const start = (e) => { e.preventDefault(); controlState[key] = true; };
+        const end = () => controlState[key] = false;
+        el.addEventListener('touchstart', start, {passive:false});
+        el.addEventListener('touchend', end);
+        el.addEventListener('mousedown', start);
+        el.addEventListener('mouseup', end);
+        el.addEventListener('mouseleave', end);
+    };
+
+    setupBtn('btnFastLeft', 'fastLeft');
+    setupBtn('btnLeft', 'left');
+    setupBtn('btnRight', 'right');
+    setupBtn('btnFastRight', 'fastRight');
+
+    // 🌟 v0.8.2 鍵盤 Shift 加速優化邏輯 🌟
+    window.addEventListener('keydown', e => {
+        const isShift = e.shiftKey;
+        if(e.key === 'ArrowLeft') {
+            if(isShift) { controlState.fastLeft = true; controlState.left = false; }
+            else { controlState.left = true; controlState.fastLeft = false; }
+        }
+        if(e.key === 'ArrowRight') {
+            if(isShift) { controlState.fastRight = true; controlState.right = false; }
+            else { controlState.right = true; controlState.fastRight = false; }
+        }
+    });
+
+    window.addEventListener('keyup', e => {
+        if(e.key === 'ArrowLeft' || e.key === 'Shift') { controlState.left = false; controlState.fastLeft = false; }
+        if(e.key === 'ArrowRight' || e.key === 'Shift') { controlState.right = false; controlState.fastRight = false; }
+    });
+
+    const diffSettings = {
+        '0':     { speed: 0.0035, correctProb: 0.70, clockProb: 0.04, penalty: 1, reset: false, star: false },
+        '9.81':  { speed: 0.0055, correctProb: 0.55, clockProb: 0.04, penalty: 2, reset: false, star: false },
+        '19.62': { speed: 0.0075, correctProb: 0.45, clockProb: 0.03, penalty: 0, reset: true,  star: true },
+        '39.24': { speed: 0.0100, correctProb: 0.35, clockProb: 0.03, penalty: 0, reset: true,  star: true }
+    };
 
     function updateFormulaDisplay() {
         if (currentFormulaIdx >= formulas.length) return;
@@ -170,7 +229,6 @@
                 player.x - (canvas.width * 0.25) + Math.random() * (canvas.width * 0.5) :
                 Math.random() * (canvas.width - size);
         x = Math.max(size, Math.min(canvas.width - size, x));
-
         objects.push({ char, type, x, y: -size, size, speed: canvas.height * config.speed * (0.9 + Math.random() * 0.2) });
     }
 
@@ -178,13 +236,21 @@
         if (!isPlaying) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        let elapsed = (Date.now() - startTime) / 1000;
-        currentDisplayTime = Math.max(0, 49.50 + totalBonusTime - elapsed);
+        let now = Date.now();
+        currentDisplayTime = Math.max(0, 49.50 + totalBonusTime - (now - startTime)/1000);
         timeDisplay.innerText = `時間: ${currentDisplayTime.toFixed(2)}s`;
         if (currentDisplayTime <= 0) { endGame(false); return; }
 
-        if (keys.ArrowLeft && player.x > player.size/2) player.x -= canvas.width * 0.018;
-        if (keys.ArrowRight && player.x < canvas.width - player.size/2) player.x += canvas.width * 0.018;
+        const microSpeed = canvas.width * 0.008; 
+        const fastSpeed = canvas.width * 0.028;  
+        
+        if (controlState.fastLeft) player.x -= fastSpeed;
+        else if (controlState.left) player.x -= microSpeed;
+        
+        if (controlState.fastRight) player.x += fastSpeed;
+        else if (controlState.right) player.x += microSpeed;
+
+        player.x = Math.max(player.size/2, Math.min(canvas.width - player.size/2, player.x));
 
         ctx.font = `${player.size}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         if (isInvincible) { ctx.shadowColor = "#f1c40f"; ctx.shadowBlur = 20; }
@@ -202,7 +268,7 @@
                 }
                 if (o.y > canvas.height + 50) objects.splice(i, 1);
             }
-            if (Math.random() < 0.035) spawnObject();
+            if (Math.random() < 0.04) spawnObject();
         }
         animationId = requestAnimationFrame(gameLoop);
     }
@@ -218,7 +284,7 @@
                 isSwitching = true; objects = []; currentFormulaIdx++; currentCharIdx = 0; totalBonusTime += 5;
                 showMsg("✅ 完成公式！加時 5s");
                 if (currentFormulaIdx >= formulas.length) { endGame(true); } 
-                else { setTimeout(() => { updateFormulaDisplay(); isSwitching = false; }, 150); }
+                else { setTimeout(() => { updateFormulaDisplay(); isSwitching = false; }, 200); }
             } else { updateFormulaDisplay(); }
         } else {
             if (isInvincible) { showMsg("🛡️ 已阻擋"); return; }
@@ -240,13 +306,10 @@
         isPlaying = false; cancelAnimationFrame(animationId);
         const timeUsed = (49.50 + totalBonusTime - currentDisplayTime).toFixed(2);
         const pName = playerNameInput.value.trim().toUpperCase() || "ANONYMOUS";
-        
-        document.getElementById('finalScore').innerText = win ? `🎉 成功完成 4 條公式！耗時：${timeUsed}s` : `時間到！只完成了 ${currentFormulaIdx} 條公式`;
+        document.getElementById('finalScore').innerText = win ? `🎉 成功！耗時：${timeUsed}s` : `時間到！只完成了 ${currentFormulaIdx} 條`;
         document.getElementById('finalScore').classList.remove('hidden');
         overlay.classList.remove('hidden');
-
         try {
-            // 🌟 排行榜權重優化：優先比較完成數，再比較時間
             const compositeScore = (currentFormulaIdx * 100000) + (win ? (100000 - Math.floor(parseFloat(timeUsed)*100)) : 0);
             await addDoc(collection(db, "physics_leaderboard"), {
                 name: pName, completed: currentFormulaIdx, timeUsed: timeUsed, difficulty: currentDiff, compositeScore, timestamp: new Date()
@@ -264,21 +327,19 @@
             if (snap.empty) list.innerHTML = '<li>未有紀錄</li>';
             snap.forEach(doc => {
                 const d = doc.data();
-                const diffLabel = d.difficulty || "0";
-                // 🌟 顯示完成數目
-                list.innerHTML += `<li><b>${d.name}</b> - 完成 ${d.completed} 條 (${d.timeUsed}s) [難度 ${diffLabel}]</li>`;
+                list.innerHTML += `<li><b>${d.name}</b> - 完成 ${d.completed} 條 (${d.timeUsed}s)</li>`;
             });
         } catch (e) { document.getElementById('scoreList').innerHTML = '<li>載入失敗</li>'; }
     }
 
     startBtn.onclick = () => {
-        currentDiff = document.querySelector('input[name="diff"]:checked').value;
+        const selectedDiff = document.querySelector('input[name="diff"]:checked');
+        currentDiff = selectedDiff ? selectedDiff.value : "0";
         currentFormulaIdx = 0; currentCharIdx = 0; totalBonusTime = 0;
         objects = []; isPlaying = true; isSwitching = false;
         startTime = Date.now(); overlay.classList.add('hidden');
         updateFormulaDisplay(); resize(); gameLoop();
     };
-
     renderLeaderboard();
 </script>
 </body>

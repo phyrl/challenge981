@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 V0.6.4.7</title>
+<title>蘋果的考驗 V0.6.4.9</title>
 <style>
     :root { --accent: #e74c3c; --gold: #f1c40f; --bg: #0d0d0d; }
     body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; touch-action: none; position: fixed; width: 100%; height: 100%; }
@@ -20,16 +20,16 @@
     .next-char { color: #fff; text-decoration: underline; text-underline-offset: 6px; animation: blink 0.8s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-    /* 手機操作按鈕 */
+    /* 操作按鈕 */
     #controls { position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; z-index: 200; pointer-events: none; }
     .control-btn { width: 68px; height: 68px; border-radius: 15px; background: rgba(50,50,50,0.8); color: white; font-size: 24px; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; border: 2px solid rgba(255,255,255,0.3); -webkit-user-select: none; }
     .control-btn:active { background: var(--accent); transform: scale(0.9); }
 
-    /* Overlays */
+    /* Overlay 佈局 */
     .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); display: flex; flex-direction: column; align-items: center; text-align: center; z-index: 100; padding: 20px; box-sizing: border-box; backdrop-filter: blur(10px); overflow: hidden; justify-content: flex-start; padding-top: 5vh; }
     .hidden { display: none !important; }
 
-    /* 動效 */
+    /* 特效 */
     .falling-apple-box { position: absolute; top: -100px; left: 80%; transform: translateX(-50%); font-size: 70px; display: none; pointer-events: none; z-index: 150; }
     .falling-apple-box.active { display: block; animation: appleDrop 2.5s linear forwards; }
     @keyframes appleDrop { 0% { top: -100px; opacity: 1; } 100% { top: 120vh; opacity: 0; } }
@@ -48,7 +48,7 @@
     <div id="ui">
         <div class="ui-item" id="levelDisplay">第 1 關</div>
         <div class="ui-item" id="timeDisplay">19.62s</div>
-        <div class="ui-item" id="shieldDisplay" style="color:cyan; display:none; border-color:cyan;">🛡️ SHIELD</div>
+        <div class="ui-item" id="shieldDisplay" style="color:cyan; display:none;">🛡️ SHIELD</div>
     </div>
 
     <div id="equationHeader"><div id="targetEquation">載入中...</div></div>
@@ -95,12 +95,13 @@
                 <img id="qrcode" src="" alt="QR" width="100">
             </div>
         </div>
-        <button class="btn-apple" onclick="location.reload()">返回主頁</button>
+        <button class="btn-apple" onclick="exitToHome()">完成挑戰並返回</button>
     </div>
 
     <div id="quoteOverlay" class="overlay hidden" style="justify-content:center; padding-top:0;">
         <div style="font-size:22px; color:var(--gold); letter-spacing:4px; line-height:2.2;">
-            「研習物理，需心無旁鶩。」<br>「嬉戲之時，莫忘探索真理。」
+            「研習物理，需心無旁鶩。」<br>
+            「嬉戲之時，莫忘探索真理。」
         </div>
     </div>
 </div>
@@ -127,14 +128,13 @@
     
     let isPlaying = false, currentLevel = 0, currentCharIdx = 0, startTime, timeBonus = 0;
     let levelTimes = [0,0,0,0], objects = [], combo = 0, hasShield = false;
-    let audioCtx = null, currentDiff = 0;
+    let audioCtx = null, currentDiff = 0, lastSpawnedIdx = -1;
     const keys = { left: false, right: false, fastLeft: false, fastRight: false };
     const player = { x: 0, y: 0, size: 60 };
 
     function resize() { 
         canvas.width = window.innerWidth; canvas.height = window.innerHeight; 
-        player.x = canvas.width/2; 
-        player.y = canvas.height - 180; // 🌟 蘋果升高位置
+        player.x = canvas.width/2; player.y = canvas.height - 180; 
     }
     window.addEventListener('resize', resize); resize();
 
@@ -149,7 +149,6 @@
         } catch(e){}
     }
 
-    // 操控邏輯
     window.addEventListener('touchstart', e => {
         if (!isPlaying) return;
         const touchX = e.touches[0].clientX;
@@ -177,7 +176,8 @@
     };
 
     async function startLevelFlow(idx) {
-        isPlaying = false; objects = []; currentLevel = idx; currentCharIdx = 0; timeBonus = 0; combo = 0; hasShield = false;
+        isPlaying = false; objects = []; currentLevel = idx; currentCharIdx = 0; lastSpawnedIdx = -1;
+        timeBonus = 0; combo = 0; hasShield = false;
         document.getElementById('shieldDisplay').style.display = 'none';
         document.getElementById('levelDisplay').innerText = `第 ${idx + 1} 關`;
         document.getElementById('transitionOverlay').classList.add('hidden');
@@ -203,46 +203,82 @@
         if (keys.fastRight) player.x += fast; else if (keys.right) player.x += micro;
         player.x = Math.max(30, Math.min(canvas.width - 30, player.x));
 
-        // 畫蘋果 + 盾牌發光
         ctx.font = "60px Arial"; ctx.textAlign = "center";
         if (hasShield) { ctx.shadowBlur = 20; ctx.shadowColor = "cyan"; }
-        ctx.fillText("🍎", player.x, player.y);
-        ctx.shadowBlur = 0;
+        ctx.fillText("🍎", player.x, player.y); ctx.shadowBlur = 0;
+
+        // 🌟 流水線預產邏輯：檢查目前畫面上的正確字元高度
+        const f = formulas[currentLevel];
+        let currentTargetInScreen = objects.find(o => o.char === f[currentCharIdx] && o.isCorrectPath);
+        
+        // 如果畫面上冇當前目標，或者目標跌到 1/3 高度，就產出下一個
+        if (!currentTargetInScreen || currentTargetInScreen.y > canvas.height / 3.5) {
+            if (lastSpawnedIdx < currentCharIdx) {
+                spawnCorrect(currentCharIdx);
+            } else if (currentTargetInScreen && currentTargetInScreen.y > canvas.height / 3.5 && lastSpawnedIdx === currentCharIdx && lastSpawnedIdx + 1 < f.length) {
+                spawnCorrect(lastSpawnedIdx + 1);
+            }
+        }
 
         for (let i = objects.length - 1; i >= 0; i--) {
             const o = objects[i]; o.y += o.speed;
             ctx.font = "bold 38px Arial"; 
-            ctx.fillStyle = (o.char === formulas[currentLevel][currentCharIdx]) ? "#f1c40f" : (o.char==='⏰'||o.char==='🛡️'?"cyan":"white");
+            ctx.fillStyle = o.isCorrectPath ? "#f1c40f" : (o.char==='⏰'||o.char==='🛡️'?"cyan":"rgba(255,255,255,0.7)");
             ctx.fillText(o.char, o.x, o.y);
             if (Math.abs(player.x - o.x) < 45 && Math.abs(player.y - o.y) < 45) { catchObj(o); objects.splice(i, 1); }
-            else if (o.y > canvas.height + 50) objects.splice(i, 1);
+            else if (o.y > canvas.height + 50) {
+                if (o.isCorrectPath && o.char === f[currentCharIdx]) lastSpawnedIdx = currentCharIdx - 1;
+                objects.splice(i, 1);
+            }
         }
-        if (Math.random() < 0.065) spawn();
+        // 🌟 大幅減少隨機生成頻率 (約 40%)
+        if (Math.random() < 0.035) spawnRandom(); 
         requestAnimationFrame(gameLoop);
     }
 
-    function spawn() {
+    function spawnCorrect(idx) {
         const f = formulas[currentLevel];
-        let char = (Math.random() < 0.65) ? f[currentCharIdx] : 'X';
-        if (Math.random() < 0.05) char = '⏰';
-        if (currentDiff >= 19.62 && Math.random() < 0.03) char = '🛡️';
-        objects.push({ char, x: Math.random()*(canvas.width-60)+30, y: -50, speed: 4+Math.random()*3+(currentDiff/10) });
+        objects.push({ 
+            char: f[idx], 
+            x: 50 + Math.random()*(canvas.width-100), 
+            y: -50, 
+            speed: 3.5 + (currentDiff/12), 
+            isCorrectPath: true 
+        });
+        lastSpawnedIdx = idx;
+    }
+
+    function spawnRandom() {
+        let char = (Math.random() < 0.15) ? '⏰' : 'X';
+        if (currentDiff >= 19.62 && Math.random() < 0.05) char = '🛡️';
+        objects.push({ 
+            char, 
+            x: 30 + Math.random()*(canvas.width-60), 
+            y: -50, 
+            speed: 4 + Math.random()*2 + (currentDiff/10), 
+            isCorrectPath: false 
+        });
     }
 
     function catchObj(o) {
         if (o.char === '⏰') { timeBonus += 3; msg("+3s", "#f1c40f"); playSound(800, 0.1); return; }
         if (o.char === '🛡️') { hasShield = true; document.getElementById('shieldDisplay').style.display = 'block'; msg("SHIELD!", "cyan"); playSound(1200, 0.1); return; }
         
-        if (o.char === formulas[currentLevel][currentCharIdx]) {
+        const f = formulas[currentLevel];
+        if (o.char === f[currentCharIdx]) {
             currentCharIdx++; combo++; timeBonus += 0.5; msg("+0.5s", "#2ecc71"); playSound(600, 0.08);
-            if (currentCharIdx >= formulas[currentLevel].length) {
+            if (currentCharIdx >= f.length) {
                 isPlaying = false; levelTimes[currentLevel] = (Date.now() - startTime) / 1000;
                 objects = []; showTransition();
             } else updateUI();
         } else {
-            if (hasShield) { hasShield = false; document.getElementById('shieldDisplay').style.display = 'none'; msg("SHIELD LOST", "white"); }
-            else if (currentDiff >= 19.62) { currentCharIdx = 0; updateUI(); }
-            combo = 0; timeBonus -= 1.5; msg("-1.5s", "red"); playSound(200, 0.2);
+            if (hasShield) {
+                hasShield = false; document.getElementById('shieldDisplay').style.display = 'none'; msg("SHIELD LOST", "white");
+            } else {
+                if (currentDiff >= 19.62) { currentCharIdx = 0; lastSpawnedIdx = -1; updateUI(); }
+                if (currentDiff > 0) timeBonus -= 1.5; 
+            }
+            combo = 0; msg(currentDiff > 0 ? "-1.5s" : "MISS", "red"); playSound(200, 0.2);
         }
     }
 
@@ -256,24 +292,18 @@
     function showTransition() {
         const trans = document.getElementById('transitionOverlay');
         const apple = document.getElementById('transitionApple');
-        const msg = document.getElementById('transMsg');
+        const tMsg = document.getElementById('transMsg');
         const btn = document.getElementById('nextLevelBtn');
-        
         trans.classList.remove('hidden');
         document.getElementById('stageTimeSummary').innerText = `本關耗時: ${levelTimes[currentLevel].toFixed(2)}s`;
-        
         if (currentLevel < 3) {
-            msg.innerText = "關卡完成！";
-            btn.innerText = "下一步";
-            const nextF = formulas[currentLevel + 1];
-            document.getElementById('targetEquation').innerHTML = nextF.map(c => `<span style="opacity:0.2">${c}</span>`).join('');
+            tMsg.innerText = "關卡完成！"; btn.innerText = "下一步";
+            document.getElementById('targetEquation').innerHTML = formulas[currentLevel + 1].map(c => `<span style="opacity:0.2">${c}</span>`).join('');
         } else {
-            msg.innerText = "🏆 實驗大獲全勝！";
-            msg.innerHTML += "<br><small style='font-size:0.6em'>CONGRATULATIONS!</small>";
+            tMsg.innerHTML = "🏆 實驗大獲全勝！<br><small style='font-size:0.6em'>CONGRATULATIONS!</small>";
             btn.innerText = "查看總結學霸榜";
             document.getElementById('targetEquation').innerHTML = "<span style='color:var(--gold)'>挑戰完成</span>";
         }
-        
         setTimeout(() => { if (!trans.classList.contains('hidden')) apple.classList.add('active'); }, 1500);
         btn.onclick = () => (currentLevel < 3) ? startLevelFlow(currentLevel + 1) : showFinal();
     }
@@ -299,7 +329,11 @@
         await addDoc(collection(db, "physics_leaderboard"), { name, totalTime: total.toFixed(2), compositeScore: 1000000-Math.floor(total*100), difficulty: currentDiff, timestamp: new Date() });
     }
 
-    window.exitToHome = () => { document.getElementById('resultOverlay').classList.add('hidden'); document.getElementById('quoteOverlay').classList.remove('hidden'); setTimeout(() => location.reload(), 4500); };
+    window.exitToHome = () => {
+        document.getElementById('resultOverlay').classList.add('hidden');
+        document.getElementById('quoteOverlay').classList.remove('hidden');
+        setTimeout(() => location.reload(), 4500);
+    };
 </script>
 </body>
 </html>

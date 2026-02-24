@@ -3,46 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 V0.6.2.4</title>
+<title>蘋果的考驗 V0.6.4.5</title>
 <style>
     :root { --accent: #e74c3c; --gold: #f1c40f; --bg: #0d0d0d; }
-    body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; touch-action: none; }
-    #gameContainer { position: relative; width: 100vw; height: 100vh; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); }
+    body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; touch-action: none; position: fixed; width: 100%; height: 100%; }
+    #gameContainer { position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #000; }
     canvas { display: block; width: 100%; height: 100%; }
 
     /* UI 頂部 */
     #ui { position: absolute; top: 12px; left: 15px; right: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 50; pointer-events: none; }
     .ui-item { background: rgba(0,0,0,0.6); padding: 6px 14px; border-radius: 20px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2); font-size: 14px; }
-    #pauseBtn { pointer-events: auto; cursor: pointer; background: var(--accent); border: none; color: white; padding: 6px 18px; border-radius: 20px; font-weight: bold; }
 
     /* 公式顯示 */
     #equationHeader { position: absolute; top: 60px; left: 0; right: 0; text-align: center; z-index: 40; pointer-events: none; }
-    #targetEquation { font-size: clamp(14px, 4.5vw, 28px); font-weight: bold; color: var(--gold); background: rgba(0,0,0,0.8); padding: 12px 20px; border-radius: 15px; display: inline-block; min-width: 85%; border: 1px solid rgba(241, 196, 15, 0.4); }
+    #targetEquation { font-size: clamp(14px, 4.5vw, 28px); font-weight: bold; color: var(--gold); background: rgba(0,0,0,0.85); padding: 10px 15px; border-radius: 12px; display: inline-block; min-width: 85%; border: 1px solid rgba(255,255,255,0.1); }
     .next-char { color: #fff; text-decoration: underline; text-underline-offset: 6px; animation: blink 0.8s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-    /* Overlay 優化：確保手機按鈕完整 */
-    .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; text-align: center; z-index: 100; padding: 15px; box-sizing: border-box; backdrop-filter: blur(8px); overflow-y: auto; justify-content: flex-start; padding-top: 5vh; }
+    /* 強制顯示的操作按鈕 */
+    #controls { position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; z-index: 200; pointer-events: none; }
+    .control-btn { width: 68px; height: 68px; border-radius: 15px; background: rgba(50,50,50,0.8); color: white; font-size: 24px; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; border: 2px solid rgba(255,255,255,0.3); -webkit-user-select: none; }
+    .control-btn:active { background: var(--accent); transform: scale(0.9); }
+
+    /* Overlay 佈局 */
+    .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); display: flex; flex-direction: column; align-items: center; text-align: center; z-index: 100; padding: 20px; box-sizing: border-box; backdrop-filter: blur(10px); overflow: hidden; justify-content: flex-start; padding-top: 8vh; }
     .hidden { display: none !important; }
 
-    /* 難度掣置中 */
-    .diff-container { display: flex; justify-content: center; width: 100%; margin: 10px 0; }
-    .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; max-width: 300px; }
-    .diff-label { background: #222; padding: 12px; border-radius: 10px; border: 1px solid #444; font-size: 13px; cursor: pointer; display: block; }
+    /* 過場 Apple 動畫修正 */
+    .falling-apple-box { position: absolute; top: -100px; left: 80%; transform: translateX(-50%); font-size: 70px; display: none; pointer-events: none; z-index: 150; }
+    .falling-apple-box.active { display: block; animation: appleDrop 2.5s linear forwards; }
+    @keyframes appleDrop { 0% { top: -100px; opacity: 1; } 100% { top: 120vh; opacity: 0; } }
+
+    .btn-apple { padding: 14px 40px; font-size: 18px; cursor: pointer; border: none; border-radius: 50px; background: var(--accent); color: white; font-weight: bold; margin: 10px; z-index: 110; }
+    .btn-sub { background: #34495e; font-size: 14px; padding: 10px 25px; }
+
+    .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 320px; margin: 15px 0; }
+    .diff-label { background: #222; padding: 12px; border-radius: 12px; border: 1px solid #444; font-size: 14px; cursor: pointer; }
     input[type="radio"]:checked + .diff-label { border-color: var(--accent); background: #442222; }
-
-    /* 按鈕樣式 */
-    .btn-apple { padding: 12px 35px; font-size: 18px; cursor: pointer; border: none; border-radius: 50px; background: var(--accent); color: white; font-weight: bold; margin: 5px; transition: 0.3s; }
-    .btn-sub { background: #34495e; font-size: 13px; padding: 8px 18px; }
-
-    /* 過場動畫：偏右且速度減慢 */
-    .falling-apple-box { position: absolute; top: -100px; left: 75%; transform: translateX(-50%); font-size: 70px; display: none; }
-    .falling-apple-box.active { display: block; animation: appleDrop 2.4s linear forwards; }
-    @keyframes appleDrop { 0% { top: -100px; } 100% { top: 120%; } }
-
-    #countdownOverlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 60px; font-weight: bold; color: var(--accent); z-index: 200; text-shadow: 0 0 20px black; }
-    #statsTable { width: 100%; max-width: 280px; border-collapse: collapse; margin-bottom: 10px; font-size: 14px; }
-    #statsTable td { padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.1); }
 </style>
 </head>
 <body>
@@ -51,72 +48,50 @@
     <div id="ui">
         <div class="ui-item" id="levelDisplay">第 1 關</div>
         <div class="ui-item" id="timeDisplay">19.62s</div>
-        <button id="pauseBtn" onclick="togglePause()">⏸ 暫停</button>
     </div>
 
-    <div id="equationHeader"><div id="targetEquation">準備挑戰...</div></div>
-    <div id="countdownOverlay" class="hidden"></div>
+    <div id="equationHeader"><div id="targetEquation">載入中...</div></div>
+    <div id="countdownOverlay" class="hidden" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:70px; font-weight:bold; color:var(--accent); z-index:300; text-shadow: 0 0 20px black;"></div>
     <canvas id="gameCanvas"></canvas>
 
-    <div id="mainMenu" class="overlay">
-        <h1 style="color:var(--accent); font-size:36px; margin:0;">🍎 蘋果的考驗</h1>
-        <p style="color:var(--gold); margin:5px 0; font-size:14px;">研習物理，需心無旁鶩。</p>
-        
-        <input type="text" id="playerName" maxlength="10" placeholder="你的名字 (ANONYMOUS)" style="width:200px; padding:10px; border-radius:10px; border:none; text-align:center; font-size:16px; margin:10px 0; outline:none;">
-        
-        <div class="diff-container">
-            <div class="diff-grid">
-                <label><input type="radio" name="diff" value="0" checked style="display:none"><div class="diff-label">難度 0</div></label>
-                <label><input type="radio" name="diff" value="9.81" style="display:none"><div class="diff-label">難度 9.81</div></label>
-                <label><input type="radio" name="diff" value="19.62" style="display:none"><div class="diff-label">難度 19.62</div></label>
-                <label><input type="radio" name="diff" value="29.43" style="display:none"><div class="diff-label">難度 29.43</div></label>
-            </div>
-        </div>
+    <div id="controls">
+        <div class="control-btn" id="btnFastLeft">◀◀</div>
+        <div class="control-btn" id="btnLeft">◀</div>
+        <div class="control-btn" id="btnRight">▶</div>
+        <div class="control-btn" id="btnFastRight">▶▶</div>
+    </div>
 
-        <button id="soundBtn" class="btn-apple btn-sub" onclick="toggleSound()">🔊 聲效: ON</button>
+    <div id="mainMenu" class="overlay">
+        <h1 style="color:var(--accent); font-size:42px; margin:0;">🍎 蘋果的考驗</h1>
+        <p style="color:var(--gold); margin:10px 0;">研習物理，需心無旁鶩。</p>
+        <input type="text" id="playerName" placeholder="名字 (ANONYMOUS)" style="width:200px; padding:12px; border-radius:10px; text-align:center; font-size:16px; margin:15px 0; border:none;">
+        <div class="diff-grid">
+            <label><input type="radio" name="diff" value="0" checked style="display:none"><div class="diff-label">難度 0</div></label>
+            <label><input type="radio" name="diff" value="9.81" style="display:none"><div class="diff-label">難度 9.81</div></label>
+            <label><input type="radio" name="diff" value="19.62" style="display:none"><div class="diff-label">難度 19.62</div></label>
+            <label><input type="radio" name="diff" value="29.43" style="display:none"><div class="diff-label">難度 29.43</div></label>
+        </div>
         <button class="btn-apple" onclick="startGame()">開始挑戰</button>
-        <button class="btn-apple btn-sub" onclick="showRules(true)">規則說明</button>
     </div>
 
     <div id="transitionOverlay" class="overlay hidden">
         <div id="transitionApple" class="falling-apple-box">🍎</div>
-        <h2 style="color:var(--gold); margin-top:80px;" id="transMsg">關卡完成！</h2>
-        <div id="stageSummaryBox" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; margin:10px 0; border:1px solid rgba(241,196,15,0.3);">
-            <p id="stageTimeSummary" style="margin:0; font-size:22px; font-weight:bold;"></p>
+        <h2 style="color:var(--gold); margin-top:80px;">關卡完成！</h2>
+        <div style="background:rgba(255,255,255,0.05); padding:20px; border-radius:15px; margin:15px 0; border:1px solid rgba(241,196,15,0.3);">
+            <p id="stageTimeSummary" style="margin:0; font-size:24px; font-weight:bold;"></p>
         </div>
-        <button class="btn-apple" id="nextLevelBtn">進入下一步</button>
-    </div>
-
-    <div id="rulesOverlay" class="overlay hidden" style="justify-content:center; padding-top:0;">
-        <div style="background:rgba(0,0,0,0.85); border:1px solid var(--gold); padding:20px; border-radius:20px; text-align:left; max-width:320px;">
-            <h2 style="color:var(--gold); text-align:center; margin-top:0;">📜 實驗指引</h2>
-            • 每關 19.62s 開局，正確 +0.5s，⏰ +3s。<br>
-            • ← / → 慢速微調；按住 <b>Shift</b> 衝刺。<br>
-            • 難度 19.62 以上接錯公式重設。
-            <button class="btn-apple btn-sub" onclick="showRules(false)" style="width:100%; margin-top:15px;">返回主頁</button>
-        </div>
+        <button class="btn-apple" id="nextLevelBtn">進入下一關</button>
     </div>
 
     <div id="resultOverlay" class="overlay hidden">
-        <h1 style="color:var(--gold); margin:0; font-size:28px;">🏆 實驗成功</h1>
-        <table id="statsTable"></table>
+        <h1 style="color:var(--gold); margin:0;">🏆 實驗成功</h1>
+        <div id="finalStats" style="margin:20px 0; width:100%; max-width:300px;"></div>
         <h2 id="totalScoreText" style="color:var(--accent); margin:10px 0;"></h2>
-        
-        <div style="margin-top: 10px;">
-            <p style="font-size: 12px; margin-bottom: 5px; opacity: 0.8;">📸 掃描 QR Code 分享網址</p>
-            <div style="background:white; padding:5px; border-radius:5px; display:inline-block;">
-                <img id="qrcode" src="" alt="QR" width="90">
-            </div>
+        <div style="background:white; padding:8px; border-radius:10px; display:inline-block;">
+            <img id="qrcode" src="" alt="QR" width="100">
         </div>
-        
-        <button class="btn-apple btn-sub" id="waShare" style="margin-top:15px;">WhatsApp 分享戰績</button>
-        <button class="btn-apple" onclick="exitToHome()">返回主頁</button>
-    </div>
-
-    <div id="quoteOverlay" class="overlay hidden" style="justify-content:center; padding-top:0;">
-        <div style="font-size:20px; color:var(--gold); letter-spacing:4px; line-height:2.2;">
-            「研習物理，需心無旁鶩。」<br>「嬉戲之時，莫忘探索真理。」
-        </div>
+        <p style="font-size:12px; margin-top:5px; opacity:0.7;">📸 掃描 QR Code 分享網址</p>
+        <button class="btn-apple" onclick="location.reload()">返回主頁</button>
     </div>
 </div>
 
@@ -140,57 +115,69 @@
     const ctx = canvas.getContext('2d');
     const formulas = [['v', '=', 'u', '+', 'a', 't'], ['s', '=', '½', '(', 'u', '+', 'v', ')', 't'], ['s', '=', 'u', 't', '+', '½', 'a', 't', '²'], ['v', '²', '=', 'u', '²', '+', '2', 'a', 's']];
     
-    let isPlaying = false, isPaused = false, currentLevel = 0, currentCharIdx = 0, startTime, timeBonus = 0, levelTimes = [0,0,0,0], objects = [], soundOn = true, audioCtx = null, currentDiff = 0, lastRemain = 19.62;
-    const keys = { left: false, right: false, shift: false };
+    let isPlaying = false, currentLevel = 0, currentCharIdx = 0, startTime, timeBonus = 0, levelTimes = [0,0,0,0], objects = [], currentDiff = 0;
+    const keys = { left: false, right: false, fastLeft: false, fastRight: false };
     const player = { x: 0, y: 0, size: 60 };
+    let animationId = null;
 
     function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; player.x = canvas.width/2; player.y = canvas.height - 110; }
     window.addEventListener('resize', resize); resize();
 
-    function playB(f, d) {
-        if (!soundOn || !audioCtx) return;
-        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-        o.frequency.setValueAtTime(f, audioCtx.currentTime);
-        g.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        o.connect(g); g.connect(audioCtx.destination);
-        o.start(); o.stop(audioCtx.currentTime + d);
-    }
+    // 手機全螢幕左右點擊操控
+    window.addEventListener('touchstart', e => {
+        if (!isPlaying) return;
+        const touchX = e.touches[0].clientX;
+        if (touchX < window.innerWidth / 2) keys.left = true;
+        else keys.right = true;
+    }, {passive: false});
+    window.addEventListener('touchend', () => { keys.left = keys.right = false; });
 
-    window.toggleSound = () => { soundOn = !soundOn; document.getElementById('soundBtn').innerText = soundOn ? "🔊 聲效: ON" : "🔇 聲效: OFF"; };
-    window.showRules = (s) => document.getElementById('rulesOverlay').classList.toggle('hidden', !s);
-    window.togglePause = () => { if (!isPlaying) return; isPaused = !isPaused; document.getElementById('pauseBtn').innerText = isPaused ? "▶ 繼續" : "⏸ 暫停"; if (!isPaused) { startTime = Date.now() - (19.62 + timeBonus - lastRemain) * 1000; gameLoop(); } };
+    // 鍵盤控制
+    window.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft') { if (e.shiftKey) keys.fastLeft = true; else keys.left = true; }
+        if (e.key === 'ArrowRight') { if (e.shiftKey) keys.fastRight = true; else keys.right = true; }
+    });
+    window.addEventListener('keyup', () => { keys.left = keys.right = keys.fastLeft = keys.fastRight = false; });
 
-    window.onkeydown = e => { if(e.key==='ArrowLeft') keys.left=true; if(e.key==='ArrowRight') keys.right=true; if(e.key==='Shift') keys.shift=true; };
-    window.onkeyup = e => { if(e.key==='ArrowLeft') keys.left=false; if(e.key==='ArrowRight') keys.right=false; if(e.key==='Shift') keys.shift=false; };
+    const bindBtn = (id, key) => {
+        const el = document.getElementById(id);
+        el.onpointerdown = (e) => { e.preventDefault(); keys[key] = true; };
+        el.onpointerup = el.onpointerleave = () => keys[key] = false;
+    };
+    bindBtn('btnFastLeft', 'fastLeft'); bindBtn('btnLeft', 'left'); bindBtn('btnRight', 'right'); bindBtn('btnFastRight', 'fastRight');
 
-    window.startGame = () => { if (!audioCtx) audioCtx = new AudioContext(); currentDiff = parseFloat(document.querySelector('input[name="diff"]:checked').value); document.getElementById('mainMenu').classList.add('hidden'); startLevelFlow(0); };
+    window.startGame = () => { currentDiff = parseFloat(document.querySelector('input[name="diff"]:checked').value); document.getElementById('mainMenu').classList.add('hidden'); startLevelFlow(0); };
 
     async function startLevelFlow(idx) {
+        if (animationId) cancelAnimationFrame(animationId);
         isPlaying = false;
-        objects = [];
+        objects = []; // 🌟 立即清理
         currentLevel = idx; currentCharIdx = 0; timeBonus = 0;
+        
         document.getElementById('levelDisplay').innerText = `第 ${idx + 1} 關`;
         document.getElementById('transitionOverlay').classList.add('hidden');
         document.getElementById('transitionApple').classList.remove('active');
+        updateUI(); // 🌟 預先顯示下一關公式
         
         const cd = document.getElementById('countdownOverlay'); cd.classList.remove('hidden');
-        const steps = [`第 ${idx+1} 關`, "READY?", "3", "2", "1", "GO!"];
-        for (let s of steps) { cd.innerText = s; playB(s==="GO!"?800:440, 0.1); await new Promise(r => setTimeout(r, 650)); }
+        const steps = [`第 ${idx+1} 關`, "3", "2", "1", "GO!"];
+        for (let s of steps) { cd.innerText = s; await new Promise(r => setTimeout(r, 650)); }
         cd.classList.add('hidden');
         
-        startTime = Date.now(); isPlaying = true; updateUI(); gameLoop();
+        startTime = Date.now(); isPlaying = true; gameLoop();
     }
 
     function gameLoop() {
-        if (!isPlaying || isPaused) return;
+        if (!isPlaying) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
         const remain = Math.max(0, 19.62 + timeBonus - (Date.now() - startTime)/1000);
-        lastRemain = remain;
         document.getElementById('timeDisplay').innerText = `${remain.toFixed(2)}s`;
-        if (remain <= 0) { isPlaying = false; alert("時間到！重啟實驗。"); startLevelFlow(currentLevel); return; }
+        if (remain <= 0) { isPlaying = false; alert("時間到！重啟。"); startLevelFlow(currentLevel); return; }
 
-        const spd = keys.shift ? canvas.width * 0.038 : canvas.width * 0.007;
-        if (keys.left) player.x -= spd; if (keys.right) player.x += spd;
+        const micro = canvas.width * 0.009, fast = canvas.width * 0.04;
+        if (keys.fastLeft) player.x -= fast; else if (keys.left) player.x -= micro;
+        if (keys.fastRight) player.x += fast; else if (keys.right) player.x += micro;
         player.x = Math.max(30, Math.min(canvas.width - 30, player.x));
 
         ctx.font = "60px Arial"; ctx.textAlign = "center";
@@ -198,60 +185,65 @@
 
         for (let i = objects.length - 1; i >= 0; i--) {
             const o = objects[i]; o.y += o.speed;
-            ctx.font = "bold 40px Arial"; ctx.fillStyle = (o.char === formulas[currentLevel][currentCharIdx]) ? "#f1c40f" : "white";
+            ctx.font = "bold 38px Arial"; ctx.fillStyle = (o.char === formulas[currentLevel][currentCharIdx]) ? "#f1c40f" : "white";
             ctx.fillText(o.char, o.x, o.y);
             if (Math.abs(player.x - o.x) < 45 && Math.abs(player.y - o.y) < 45) { catchObj(o); objects.splice(i, 1); }
             else if (o.y > canvas.height + 50) objects.splice(i, 1);
         }
-        if (Math.random() < 0.06) objects.push({ char: (Math.random()<0.68?formulas[currentLevel][currentCharIdx]:(Math.random()<0.06?'⏰':'X')), x: Math.random()*canvas.width, y: -50, speed: 4+Math.random()*3+(currentDiff/10) });
-        requestAnimationFrame(gameLoop);
+        if (Math.random() < 0.06) objects.push({ char: (Math.random()<0.68?formulas[currentLevel][currentCharIdx]:'X'), x: Math.random()*canvas.width, y: -50, speed: 4+Math.random()*2+(currentDiff/10) });
+        animationId = requestAnimationFrame(gameLoop);
     }
 
     function catchObj(o) {
-        if (o.char === '⏰') { timeBonus += 3; playB(900, 0.1); return; }
         if (o.char === formulas[currentLevel][currentCharIdx]) {
-            currentCharIdx++; timeBonus += 0.5; playB(700, 0.08);
+            currentCharIdx++; timeBonus += 0.5;
             if (currentCharIdx >= formulas[currentLevel].length) {
-                isPlaying = false; 
-                levelTimes[currentLevel] = (Date.now() - startTime) / 1000;
-                objects = [];
+                isPlaying = false; levelTimes[currentLevel] = (Date.now() - startTime) / 1000;
+                objects = []; // 🌟 過關立即清理
                 showTransition();
             } else updateUI();
-        } else { timeBonus -= 1.5; playB(150, 0.2); if (currentDiff >= 19.62) { currentCharIdx = 0; updateUI(); } }
+        } else { timeBonus -= 1.5; if (currentDiff >= 19.62) { currentCharIdx = 0; updateUI(); } }
     }
 
     function showTransition() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // 🌟 強制清空畫布
         const trans = document.getElementById('transitionOverlay');
         const apple = document.getElementById('transitionApple');
         trans.classList.remove('hidden');
         document.getElementById('stageTimeSummary').innerText = `本關耗時: ${levelTimes[currentLevel].toFixed(2)}s`;
         
-        setTimeout(() => {
-            if (!trans.classList.contains('hidden')) apple.classList.add('active');
-        }, 1500);
+        // 預顯示下一關公式
+        if (currentLevel < 3) {
+            const nextF = formulas[currentLevel + 1];
+            let h = nextF.map(c => `<span style="opacity:0.2">${c}</span>`).join('');
+            document.getElementById('targetEquation').innerHTML = h;
+        }
 
-        const nextBtn = document.getElementById('nextLevelBtn');
-        nextBtn.onclick = () => (currentLevel < 3) ? startLevelFlow(currentLevel + 1) : showFinal();
+        setTimeout(() => { if (!trans.classList.contains('hidden')) apple.classList.add('active'); }, 1500);
+        document.getElementById('nextLevelBtn').onclick = () => (currentLevel < 3) ? startLevelFlow(currentLevel + 1) : showFinal();
     }
 
     function updateUI() {
-        const f = formulas[currentLevel]; let h = "";
-        f.forEach((c, i) => { h += (i < currentCharIdx) ? `<span style="color:#2ecc71">${c}</span>` : (i === currentCharIdx) ? `<span class="next-char">${c}</span>` : `<span style="opacity:0.2">${c}</span>`; });
+        const f = formulas[currentLevel];
+        let h = f.map((c, i) => {
+            if (i < currentCharIdx) return `<span style="color:#2ecc71">${c}</span>`;
+            if (i === currentCharIdx) return `<span class="next-char">${c}</span>`;
+            return `<span style="opacity:0.2">${c}</span>`;
+        }).join('');
         document.getElementById('targetEquation').innerHTML = h;
     }
 
     async function showFinal() {
         document.getElementById('transitionOverlay').classList.add('hidden');
-        const res = document.getElementById('resultOverlay'); res.classList.remove('hidden');
-        let total = 0; const tbl = document.getElementById('statsTable'); tbl.innerHTML = "";
-        levelTimes.forEach((t, i) => { total += t; tbl.innerHTML += `<tr><td>關卡 ${i+1}</td><td style='text-align:right'>${t.toFixed(2)}s</td></tr>`; });
+        document.getElementById('resultOverlay').classList.remove('hidden');
+        let total = 0; let html = "<table style='width:100%'>";
+        levelTimes.forEach((t, i) => { total += t; html += `<tr><td>關卡 ${i+1}</td><td>${t.toFixed(2)}s</td></tr>`; });
+        document.getElementById('finalStats').innerHTML = html + "</table>";
         document.getElementById('totalScoreText').innerText = `總成績：${total.toFixed(2)}s`;
-        const url = window.location.href; document.getElementById('qrcode').src = `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(url)}`;
-        document.getElementById('waShare').onclick = () => window.open(`https://wa.me/?text=${encodeURIComponent('🍎 蘋果的考驗成功！總耗時 '+total.toFixed(2)+'s。你也來試試：'+url)}`);
-        try { await addDoc(collection(db, "physics_leaderboard"), { name: (document.getElementById('playerName').value || "ANONYMOUS"), totalTime: total.toFixed(2), compositeScore: 1000000-Math.floor(total*100), difficulty: currentDiff, timestamp: new Date() }); } catch(e) {}
+        document.getElementById('qrcode').src = `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(window.location.href)}`;
+        const name = document.getElementById('playerName').value || "ANONYMOUS";
+        await addDoc(collection(db, "physics_leaderboard"), { name, totalTime: total.toFixed(2), compositeScore: 1000000-Math.floor(total*100), difficulty: currentDiff, timestamp: new Date() });
     }
-
-    window.exitToHome = () => { document.getElementById('resultOverlay').classList.add('hidden'); document.getElementById('quoteOverlay').classList.remove('hidden'); setTimeout(() => location.reload(), 4500); };
 </script>
 </body>
 </html>

@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 V0.6.5.1</title>
+<title>蘋果的考驗 V0.6.5.2</title>
 <style>
-    :root { --accent: #e74c3c; --gold: #f1c40f; --bg: #0d0d0d; --cert-bg: #1a1a1a; }
+    :root { --accent: #e74c3c; --gold: #f1c40f; --bg: #0d0d0d; --cert-bg: #1a1a1a; --ig: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
     body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; touch-action: none; position: fixed; width: 100%; height: 100%; }
     #gameContainer { position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #000; }
     canvas { display: block; width: 100%; height: 100%; }
@@ -26,26 +26,26 @@
     .control-btn:active { background: var(--accent); transform: scale(0.9); }
 
     /* Overlays */
-    .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); display: flex; flex-direction: column; align-items: center; text-align: center; z-index: 100; padding: 20px; box-sizing: border-box; backdrop-filter: blur(10px); overflow: hidden; justify-content: flex-start; padding-top: 5vh; }
+    .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); display: flex; flex-direction: column; align-items: center; text-align: center; z-index: 100; padding: 20px; box-sizing: border-box; backdrop-filter: blur(10px); overflow: hidden; justify-content: flex-start; padding-top: 8vh; }
     .hidden { display: none !important; }
 
-    /* 證書版面 */
+    /* 難度標籤修復 */
+    .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 90%; max-width: 320px; margin: 15px 0; }
+    .diff-label { background: #222; padding: 12px; border-radius: 12px; border: 1px solid #444; font-size: 14px; cursor: pointer; display: block; }
+    input[type="radio"]:checked + .diff-label { border-color: var(--accent); background: #442222; box-shadow: 0 0 10px var(--accent); }
+
+    /* 證書與按鈕 */
     .certificate { background: var(--cert-bg); border: 4px double var(--gold); padding: 20px; border-radius: 15px; width: 95%; max-width: 340px; margin: 10px 0; box-shadow: 0 0 25px rgba(241, 196, 15, 0.3); }
     .cert-rank-name { font-size: 20px; color: var(--accent); font-weight: bold; margin-bottom: 8px; border: 1px solid var(--accent); display: inline-block; padding: 2px 12px; border-radius: 5px; }
-
     .btn-apple { padding: 14px 40px; font-size: 18px; cursor: pointer; border: none; border-radius: 50px; background: var(--accent); color: white; font-weight: bold; margin: 8px; width: 85%; max-width: 280px; }
-    .btn-ig { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+    .btn-ig { background: var(--ig); }
 
-    /* 動效 */
+    /* 特效 */
     .falling-apple-box { position: absolute; top: -100px; left: 80%; transform: translateX(-50%); font-size: 70px; display: none; pointer-events: none; z-index: 150; }
     .falling-apple-box.active { display: block; animation: appleDrop 2.5s linear forwards; }
     @keyframes appleDrop { 0% { top: -100px; opacity: 1; } 100% { top: 120vh; opacity: 0; } }
     .float-msg { position: absolute; pointer-events: none; font-weight: bold; animation: floatUp 1s forwards; z-index: 60; font-size: 24px; text-shadow: 2px 2px 4px black; }
     @keyframes floatUp { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-60px); } }
-
-    .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 90%; max-width: 320px; margin: 15px 0; }
-    .diff-label { background: #222; padding: 12px; border-radius: 12px; border: 1px solid #444; font-size: 14px; cursor: pointer; display: block; }
-    input[type="radio"]:checked + .diff-label { border-color: var(--accent); background: #442222; box-shadow: 0 0 10px var(--accent); }
 </style>
 </head>
 <body>
@@ -79,7 +79,7 @@
             <label><input type="radio" name="diff" value="19.62" style="display:none"><div class="diff-label">難度 19.62</div></label>
             <label><input type="radio" name="diff" value="29.43" style="display:none"><div class="diff-label">難度 29.43</div></label>
         </div>
-        <button class="btn-apple" onclick="startGame()">開始挑戰</button>
+        <button class="btn-apple" onclick="window.startGame()">開始挑戰</button>
     </div>
 
     <div id="transitionOverlay" class="overlay hidden">
@@ -94,27 +94,22 @@
     <div id="resultOverlay" class="overlay hidden">
         <div class="certificate" id="certContainer">
             <div id="rankLabel" class="cert-rank-name">物理學霸</div>
-            <div style="font-size:24px; color:var(--gold); font-weight:bold; margin-bottom: 10px;">物理成就證書</div>
+            <div style="font-size:24px; color:var(--gold); font-weight:bold;">物理成就證書</div>
             <div style="font-size:16px; margin:10px 0; border-top:1px solid rgba(241,196,15,0.3); padding-top:10px;">
-                茲證明 <span id="certPlayerName" style="color:var(--gold); font-weight:bold;"></span><br>
-                成功通過「蘋果的考驗」實驗！
+                茲證明 <span id="certPlayerName" style="color:var(--gold); font-weight:bold;"></span><br>成功通過「蘋果的考驗」實驗！
             </div>
             <div style="font-size:18px;">
-                總時間：<span id="certTotalTime" style="color:var(--accent); font-weight:bold;"></span>s<br>
-                難度：<span id="certDiff"></span>
+                總時間：<span id="certTotalTime" style="color:var(--accent); font-weight:bold;"></span>s<br>難度：<span id="certDiff"></span>
             </div>
-            <div style="margin-top:12px;">
-                <img id="qrcode" src="" alt="QR" width="85" style="background:white; padding:4px; border-radius:5px;">
-            </div>
+            <div style="margin-top:12px;"><img id="qrcode" src="" alt="QR" width="85" style="background:white; padding:4px; border-radius:5px;"></div>
         </div>
-        <button class="btn-apple btn-ig" onclick="copyToIG()">📋 複製成績分享 IG Story</button>
-        <button class="btn-apple" style="background:#34495e;" onclick="exitToHome()">返回主頁挑戰</button>
+        <button class="btn-apple btn-ig" onclick="window.copyToIG()">📋 複製學霸戰績分享 IG</button>
+        <button class="btn-apple" style="background:#34495e;" onclick="window.exitToHome()">返回主頁</button>
     </div>
 
     <div id="quoteOverlay" class="overlay hidden" style="justify-content:center; padding-top:0;">
         <div style="font-size:22px; color:var(--gold); letter-spacing:4px; line-height:2.2;">
-            「研習物理，需心無旁鶩。」<br>
-            「嬉戲之時，莫忘探索真理。」
+            「研習物理，需心無旁鶩。」<br>「嬉戲之時，莫忘探索真理。」
         </div>
     </div>
 </div>
@@ -122,6 +117,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
 
     const firebaseConfig = {
       apiKey: "AIzaSyDoHHh-8Gm5tt_uWF4IPGIGfOTNYnAgHr4",
@@ -148,7 +144,7 @@
 
     function resize() { 
         canvas.width = window.innerWidth; canvas.height = window.innerHeight; 
-        player.x = canvas.width/2; player.y = canvas.height - 180;
+        player.x = canvas.width/2; player.y = canvas.height - 180; 
     }
     window.addEventListener('resize', resize); resize();
 
@@ -163,28 +159,25 @@
         } catch(e){}
     }
 
-    // 操控與按鈕綁定
-    window.addEventListener('touchstart', e => { if(isPlaying) { const x = e.touches[0].clientX; if(x < window.innerWidth/2) keys.left=true; else keys.right=true; } });
-    window.addEventListener('touchend', () => { keys.left = keys.right = false; });
-    window.addEventListener('keydown', e => {
-        if (e.key === 'ArrowLeft') { if (e.shiftKey) keys.fastLeft = true; else keys.left = true; }
-        if (e.key === 'ArrowRight') { if (e.shiftKey) keys.fastRight = true; else keys.right = true; }
-    });
-    window.addEventListener('keyup', () => { keys.left = keys.right = keys.fastLeft = keys.fastRight = false; });
-
-    const bindBtn = (id, k) => { 
-        const el = document.getElementById(id); 
-        el.onpointerdown = (e) => { e.preventDefault(); keys[k]=true; }; 
-        el.onpointerup = el.onpointerleave = () => keys[k]=false; 
-    };
-    bindBtn('btnFastLeft', 'fastLeft'); bindBtn('btnLeft', 'left'); bindBtn('btnRight', 'right'); bindBtn('btnFastRight', 'fastRight');
-
-    window.startGame = () => { 
+    // 🌟 全域函數綁定 (解決 onclick 失效問題)
+    window.startGame = () => {
         audioCtx = new AudioContext(); 
         const selected = document.querySelector('input[name="diff"]:checked');
         currentDiff = selected ? parseFloat(selected.value) : 0;
         document.getElementById('mainMenu').classList.add('hidden'); 
         startLevelFlow(0); 
+    };
+
+    window.copyToIG = () => {
+        let total = 0; levelTimes.forEach(t => total += t);
+        const txt = `🍎 物理學霸：${document.getElementById('playerName').value || "ANONYMOUS"}\n🏆 榮譽：${document.getElementById('rankLabel').innerText}\n⏱ 總耗時：${total.toFixed(2)}s\n🔥 蘋果的考驗：物理實驗完成！`;
+        navigator.clipboard.writeText(txt).then(() => alert("✅ 成績已複製！"));
+    };
+
+    window.exitToHome = () => {
+        document.getElementById('resultOverlay').classList.add('hidden');
+        document.getElementById('quoteOverlay').classList.remove('hidden');
+        setTimeout(() => location.reload(), 4500);
     };
 
     async function startLevelFlow(idx) {
@@ -194,9 +187,10 @@
         document.getElementById('transitionOverlay').classList.add('hidden');
         updateUI();
         const cd = document.getElementById('countdownOverlay'); cd.classList.remove('hidden');
-        const steps = [`第 ${idx+1} 關`, "3", "2", "1", "GO!"];
+        const steps = [`第 ${idx+1} 關`, "READY?", "3", "2", "1", "GO!"];
         for (let s of steps) { cd.innerText = s; playSound(440, 0.1); await new Promise(r => setTimeout(r, 650)); }
-        cd.classList.add('hidden'); startTime = Date.now(); isPlaying = true; gameLoop();
+        cd.classList.add('hidden');
+        startTime = Date.now(); isPlaying = true; gameLoop();
     }
 
     function gameLoop() {
@@ -215,42 +209,31 @@
         if (hasShield) { ctx.shadowBlur = 20; ctx.shadowColor = "cyan"; }
         ctx.fillText("🍎", player.x, player.y); ctx.shadowBlur = 0;
 
-        // 🌟 流水線邏輯
         const f = formulas[currentLevel];
         let correctObjs = objects.filter(o => o.isCorrect);
         if (correctObjs.length === 0 || correctObjs[correctObjs.length-1].y > canvas.height/3.5) {
-            if (lastSpawnedIdx < f.length - 1) { spawn(lastSpawnedIdx + 1, true); }
+            if (lastSpawnedIdx < f.length - 1) { spawnCorrect(lastSpawnedIdx + 1); }
         }
 
         for (let i = objects.length - 1; i >= 0; i--) {
             const o = objects[i]; o.y += o.speed;
             ctx.font = "bold 38px Arial"; 
-            ctx.fillStyle = o.isCorrect ? (o.idx === currentCharIdx ? "#f1c40f" : "rgba(241,196,15,0.5)") : (o.char==='⏰'||o.char==='🛡️'?"cyan":"rgba(255,255,255,0.4)");
+            ctx.fillStyle = o.isCorrect ? (o.idx === currentCharIdx ? "#f1c40f" : "rgba(241,196,15,0.4)") : (o.char==='⏰'||o.char==='🛡️'?"cyan":"rgba(255,255,255,0.4)");
             ctx.fillText(o.char, o.x, o.y);
-            
             if (Math.abs(player.x - o.x) < 45 && Math.abs(player.y - o.y) < 45) { catchObj(o); objects.splice(i, 1); }
             else if (o.y > canvas.height + 50) {
-                // 🌟 後補機制
                 if (o.isCorrect && o.idx === currentCharIdx) lastSpawnedIdx = currentCharIdx - 1;
                 objects.splice(i, 1);
             }
         }
-        if (Math.random() < 0.035) spawnDistractor();
+        if (Math.random() < 0.035) spawnRandom();
         requestAnimationFrame(gameLoop);
     }
 
-    function spawn(idx, isCorrect) {
-        objects.push({ char: formulas[currentLevel][idx], x: 50+Math.random()*(canvas.width-100), y: -50, speed: 3.5+(currentDiff/12), isCorrect, idx });
-        if (isCorrect) lastSpawnedIdx = idx;
-    }
-
-    function spawnDistractor() {
+    function spawnCorrect(idx) { objects.push({ char: formulas[currentLevel][idx], x: 50+Math.random()*(canvas.width-100), y: -50, speed: 3.5+(currentDiff/12), isCorrect: true, idx }); lastSpawnedIdx = idx; }
+    function spawnRandom() {
         const f = formulas[currentLevel];
-        let char = 'X';
-        if (currentDiff > 0) {
-            const pool = distMap[f[currentCharIdx]] || ['X','?','!'];
-            char = Math.random() < 0.7 ? pool[Math.floor(Math.random()*pool.length)] : 'X';
-        }
+        let char = (currentDiff > 0 && Math.random() < 0.7) ? (distMap[f[currentCharIdx]]?distMap[f[currentCharIdx]][0]:'X') : 'X';
         if (Math.random() < 0.1) char = '⏰';
         if (currentDiff >= 19.62 && Math.random() < 0.05) char = '🛡️';
         objects.push({ char, x: 30+Math.random()*(canvas.width-60), y: -50, speed: 4+Math.random()*2+(currentDiff/10), isCorrect: false });
@@ -265,10 +248,7 @@
             if (currentCharIdx >= f.length) { isPlaying = false; levelTimes[currentLevel] = (Date.now() - startTime)/1000; showTransition(); } else updateUI();
         } else {
             if (hasShield) { hasShield = false; document.getElementById('shieldDisplay').style.display = 'none'; msg("🛡️ LOST", "white"); }
-            else { 
-                if (currentDiff >= 19.62) { currentCharIdx = 0; lastSpawnedIdx = -1; updateUI(); } 
-                if (currentDiff > 0) timeBonus -= 1.5;
-            }
+            else { if (currentDiff >= 19.62) { currentCharIdx = 0; lastSpawnedIdx = -1; updateUI(); } if (currentDiff > 0) timeBonus -= 1.5; }
             combo = 0; msg(currentDiff > 0 ? "-1.5s" : "MISS", "red"); playSound(200, 0.2);
         }
     }
@@ -284,13 +264,12 @@
         const apple = document.getElementById('transitionApple');
         const btn = document.getElementById('nextLevelBtn');
         trans.classList.remove('hidden');
-        document.getElementById('stageTimeSummary').innerText = `本關耗時: ${levelTimes[currentLevel].toFixed(Stage 12)}s`;
+        document.getElementById('stageTimeSummary').innerText = `本關耗時: ${levelTimes[currentLevel].toFixed(2)}s`;
         if (currentLevel < 3) {
             document.getElementById('transMsg').innerText = "關卡完成！"; btn.innerText = "下一步";
             document.getElementById('targetEquation').innerHTML = formulas[currentLevel+1].map(c => `<span style="opacity:0.2">${c}</span>`).join('');
         } else {
-            document.getElementById('transMsg').innerHTML = "🏆 實驗大獲全勝！<br><small>CONGRATULATIONS!</small>";
-            btn.innerText = "生成學霸證書";
+            document.getElementById('transMsg').innerHTML = "🏆 實驗大獲全勝！<br><small>CONGRATULATIONS!</small>"; btn.innerText = "生成學霸證書";
         }
         setTimeout(() => { if (!trans.classList.contains('hidden')) apple.classList.add('active'); }, 1500);
         btn.onclick = () => (currentLevel < 3) ? startLevelFlow(currentLevel + 1) : showFinal();
@@ -324,17 +303,11 @@
         await addDoc(collection(db, "physics_leaderboard"), { name, totalTime: total.toFixed(2), compositeScore: 1000000-Math.floor(total*100), difficulty: currentDiff, timestamp: new Date() });
     }
 
-    window.copyToIG = () => {
-        let total = 0; levelTimes.forEach(t => total += t);
-        const txt = `🍎 蘋果的考驗：物理實驗完成！\n🏆 稱號：${document.getElementById('rankLabel').innerText}\n👤 玩家：${document.getElementById('playerName').value || "ANONYMOUS"}\n⏱ 總耗時：${total.toFixed(2)}s\n🔬 難度：${currentDiff}\n🔥 立即挑戰：${window.location.href}`;
-        navigator.clipboard.writeText(txt).then(() => alert("✅ 成績已複製！"));
-    };
-
-    window.exitToHome = () => {
-        document.getElementById('resultOverlay').classList.add('hidden');
-        document.getElementById('quoteOverlay').classList.remove('hidden');
-        setTimeout(() => location.reload(), 4500);
-    };
+    // 操作綁定修復
+    window.addEventListener('touchstart', e => { if(isPlaying) { const x = e.touches[0].clientX; if(x < window.innerWidth/2) keys.left=true; else keys.right=true; } });
+    window.addEventListener('touchend', () => { keys.left = keys.right = false; });
+    const bindBtn = (id, k) => { const el = document.getElementById(id); el.onpointerdown = (e) => { e.preventDefault(); keys[k]=true; }; el.onpointerup = () => keys[k]=false; };
+    bindBtn('btnFastLeft', 'fastLeft'); bindBtn('btnLeft', 'left'); bindBtn('btnRight', 'right'); bindBtn('btnFastRight', 'fastRight');
 </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 v0.8.5</title>
+<title>蘋果的考驗 v0.8.6</title>
 <style>
     body { margin: 0; padding: 0; background-color: #2c3e50; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; color: white; }
     #gameContainer { position: relative; width: 100vw; height: 100vh; background-color: #34495e; overflow: hidden; }
@@ -11,16 +11,15 @@
     #ui { position: absolute; top: 10px; left: 15px; right: 15px; display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; pointer-events: none; z-index: 5; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
     #versionTag { font-size: 12px; opacity: 0.6; font-weight: normal; }
     #equationHeader { position: absolute; top: 45px; left: 0; right: 0; text-align: center; z-index: 5; pointer-events: none; padding: 10px; }
-    #targetEquation { font-size: clamp(18px, 6vw, 36px); font-weight: bold; color: #f1c40f; background: rgba(0,0,0,0.6); padding: 12px; border-radius: 12px; display: inline-block; letter-spacing: 2px; min-width: 85%; box-shadow: 0 4px 15px rgba(0,0,0,0.3); line-height: 1.4; }
+    #targetEquation { font-size: clamp(16px, 5.5vw, 32px); font-weight: bold; color: #f1c40f; background: rgba(0,0,0,0.7); padding: 12px; border-radius: 12px; display: inline-block; letter-spacing: 2px; min-width: 88%; box-shadow: 0 4px 15px rgba(0,0,0,0.4); line-height: 1.5; }
     .next-char { color: #ffffff; text-decoration: underline; text-underline-offset: 6px; animation: blink 0.8s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     #powerUpMsg { position: absolute; top: 160px; left: 50%; transform: translateX(-50%); font-size: 22px; font-weight: bold; color: #2ecc71; text-shadow: 0 0 10px #27ae60; opacity: 0; transition: opacity 0.3s; z-index: 5; }
-    #controls { position: absolute; bottom: 25px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; padding: 0 10px; z-index: 10; pointer-events: none; }
-    .control-btn { width: 65px; height: 65px; border-radius: 15px; background: rgba(0, 0, 0, 0.6); color: white; font-size: 24px; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; user-select: none; border: 2px solid rgba(255,255,255,0.3); }
-    #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 20; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-    #playerName { font-size: 18px; padding: 12px; border-radius: 8px; border: none; width: 80%; max-width: 250px; margin: 10px 0; text-align: center; text-transform: uppercase; }
-    #rulesBox { background: rgba(241, 196, 15, 0.15); border: 1px solid #f1c40f; border-radius: 10px; padding: 15px; margin: 10px 0; width: 90%; max-width: 400px; font-size: 14px; text-align: left; }
-    button.start { padding: 12px 50px; font-size: 24px; cursor: pointer; border: none; border-radius: 50px; background-color: #e74c3c; color: white; font-weight: bold; margin-top: 10px; }
+    #controls { position: absolute; bottom: 25px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px; padding: 0 5px; z-index: 10; pointer-events: none; }
+    .control-btn { width: 68px; height: 68px; border-radius: 15px; background: rgba(0, 0, 0, 0.6); color: white; font-size: 24px; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; border: 2px solid rgba(255,255,255,0.3); }
+    #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 20; padding: 20px; box-sizing: border-box; }
+    #rulesBox { background: rgba(241, 196, 15, 0.1); border: 1px solid #f1c40f; border-radius: 10px; padding: 12px; margin: 10px 0; width: 92%; max-width: 420px; font-size: 13px; line-height: 1.4; }
+    button.start { padding: 12px 45px; font-size: 22px; cursor: pointer; border: none; border-radius: 50px; background-color: #e74c3c; color: white; font-weight: bold; margin-top: 10px; }
     .hidden { display: none !important; }
 </style>
 </head>
@@ -30,7 +29,7 @@
     <div id="ui">
         <div id="timeDisplay">時間: 49.50s</div>
         <div id="scoreDisplay">進度: 0/4</div>
-        <div id="versionTag">v0.8.5</div>
+        <div id="versionTag">v0.8.6</div>
     </div>
     <div id="equationHeader"><div id="targetEquation">載入中...</div></div>
     <div id="powerUpMsg">⭐⭐ 公式護盾 ⭐⭐</div>
@@ -42,23 +41,20 @@
         <div class="control-btn" id="btnFastRight">▶▶</div>
     </div>
     <div id="overlay">
-        <div style="font-size: 12px; opacity: 0.5;">VERSION 0.8.5</div>
-        <h1 style="color: #e74c3c; margin: 5px 0; font-size: 32px;">🍎 蘋果的考驗</h1>
+        <div style="font-size: 11px; opacity: 0.5;">VERSION 0.8.6 (STABILITY REINFORCED)</div>
+        <h1 style="color: #e74c3c; margin: 5px 0; font-size: 30px;">🍎 蘋果的考驗</h1>
         <div id="rulesBox">
-            <h3 style="margin: 0 0 10px 0; text-align: center;">📜 遊戲玩法</h3>
-            1. 順序接符號。下一個符號會提前出現，請保持快節奏。<br>
-            2. <b>修復：</b> 採用階段式切換技術，解決公式過關時的 Hang 機 Bug。
+            <h3 style="margin: 0 0 5px 0; color: #f1c40f;">📜 玩法說明</h3>
+            1. 順序接取公式字元。第3, 4條公式難度較高。<br>
+            2. <b>v0.8.6 核心優化：</b> 針對第三條公式 $s = ut + \frac{1}{2}at^2$ 進行效能強化，防止渲染當機。
         </div>
-        <input type="text" id="playerName" maxlength="10" placeholder="輸入學霸名字">
-        <div id="difficultyUI" style="margin: 10px 0;">
+        <input type="text" id="playerName" maxlength="10" placeholder="輸入名字">
+        <div id="difficultyUI" style="margin: 10px 0; font-size: 14px;">
             <label><input type="radio" name="diff" value="0" checked> 難度 0</label>
             <label><input type="radio" name="diff" value="9.81"> 9.81</label>
-            <label><input type="radio" name="diff" value="19.62"> 19.62</label>
-            <label><input type="radio" name="diff" value="39.24"> 39.24</label>
         </div>
-        <div id="leaderboard">
-            <h3 style="text-align:center; margin: 0 0 5px 0; color: #f1c40f;">🏆 雲端排行榜</h3>
-            <ol id="scoreList"><li>載入中...</li></ol>
+        <div id="leaderboard" style="width: 100%; margin: 10px 0;">
+            <ol id="scoreList" style="text-align: left; display: inline-block;"><li>載入榜單...</li></ol>
         </div>
         <button class="start" id="startBtn">開始挑戰</button>
     </div>
@@ -77,6 +73,7 @@
       messagingSenderId: "68402923149",
       appId: "1:68402923149:web:0bb2be531b9e971a6544c4"
     };
+
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
@@ -100,19 +97,18 @@
 
     const distractorsMap = { 'v': ['u', 'y'], 'u': ['v', 'w'], 's': ['d', 'h'], 'a': ['g', 'q'], 't': ['f', 'x'], '=': ['≈', '-'], '+': ['-', '×'], '(': ['{', '['], ')': ['}', ']'], '²': ['³', '2'], '½': ['⅓', '¼'], '2': ['3', 'z'] };
 
-    let isPlaying = false, startTime, totalBonusTime = 0, currentFormulaIdx = 0, currentCharIdx = 0, animationId, currentDiff = 0, isInvincible = false, invincibleTimer = null, player = { x: 0, y: 0, size: 0 }, objects = [], isSwitching = false;
+    let isPlaying = false, startTime, totalBonusTime = 0, currentFormulaIdx = 0, currentCharIdx = 0, animationId, currentDiff = 0, player = { x: 0, y: 0, size: 0 }, objects = [], isSwitching = false;
     const controlState = { left: false, right: false, fastLeft: false, fastRight: false };
 
-    const diffSettings = { '0': { speed: 0.0035, correctProb: 0.65, clockProb: 0.04, penalty: 1 }, '9.81': { speed: 0.0055, correctProb: 0.50, clockProb: 0.04, penalty: 2 }, '19.62': { speed: 0.0075, correctProb: 0.40, clockProb: 0.03, penalty: 0 }, '39.24': { speed: 0.0100, correctProb: 0.30, clockProb: 0.03, penalty: 0 } };
-
-    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; player.size = Math.min(canvas.width * 0.12, 70); player.x = canvas.width / 2; player.y = canvas.height - player.size - 25; }
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; player.size = 65; player.x = canvas.width / 2; player.y = canvas.height - 90; }
     window.addEventListener('resize', resize); resize();
 
     const setupBtn = (id, key) => {
         const el = document.getElementById(id);
         const start = (e) => { e.preventDefault(); controlState[key] = true; };
         const end = () => controlState[key] = false;
-        el.addEventListener('touchstart', start, {passive:false}); el.addEventListener('touchend', end); el.addEventListener('mousedown', start); el.addEventListener('mouseup', end);
+        el.addEventListener('touchstart', start, {passive:false}); el.addEventListener('touchend', end);
+        el.addEventListener('mousedown', start); el.addEventListener('mouseup', end);
     };
     setupBtn('btnFastLeft', 'fastLeft'); setupBtn('btnLeft', 'left'); setupBtn('btnRight', 'right'); setupBtn('btnFastRight', 'fastRight');
 
@@ -123,45 +119,40 @@
     window.addEventListener('keyup', e => { if(e.key === 'ArrowLeft' || e.key === 'Shift') { controlState.left = false; controlState.fastLeft = false; } if(e.key === 'ArrowRight' || e.key === 'Shift') { controlState.right = false; controlState.fastRight = false; } });
 
     function updateFormulaDisplay() {
-        if (currentFormulaIdx >= formulas.length) return;
+        if (!isPlaying || currentFormulaIdx >= formulas.length) return;
         const currentF = formulas[currentFormulaIdx];
-        let html = "";
+        let str = "";
         for (let i = 0; i < currentF.length; i++) {
-            if (i < currentCharIdx) html += `<span style="color:#2ecc71">${currentF[i]}</span>`;
-            else if (i === currentCharIdx) html += `<span class="next-char">${currentF[i]}</span>`;
-            else html += `<span style="opacity:0.2">${currentF[i]}</span>`;
+            if (i < currentCharIdx) str += `<span style="color:#2ecc71">${currentF[i]}</span>`;
+            else if (i === currentCharIdx) str += `<span class="next-char">${currentF[i]}</span>`;
+            else str += `<span style="opacity:0.2">${currentF[i]}</span>`;
         }
-        targetEqDisplay.innerHTML = html;
+        targetEqDisplay.innerHTML = str;
         scoreDisplay.innerText = `進度: ${currentFormulaIdx}/4`;
     }
 
     function spawnObject() {
         if (!isPlaying || isSwitching || currentFormulaIdx >= formulas.length) return;
-        const config = diffSettings[currentDiff];
-        const currentF = formulas[currentFormulaIdx];
-        if (!currentF) return;
-        const targetChar = currentF[currentCharIdx];
+        const targetChar = formulas[currentFormulaIdx][currentCharIdx];
         const rand = Math.random();
         let char = '', type = 'distractor';
 
-        if (rand < config.clockProb) { char = '⏰'; type = 'clock'; }
-        else if (rand < config.clockProb + 0.02 && (currentDiff > 10)) { char = '⭐'; type = 'star'; } //簡化邏輯
+        if (rand < 0.04) { char = '⏰'; type = 'clock'; }
         else if (rand < 0.65) {
             const nextIdx = currentCharIdx + 1;
-            if (nextIdx < currentF.length && Math.random() > 0.6) { char = currentF[nextIdx]; type = 'future'; }
+            if (nextIdx < formulas[currentFormulaIdx].length && Math.random() > 0.6) { char = formulas[currentFormulaIdx][nextIdx]; type = 'future'; }
             else { char = targetChar; type = 'correct'; }
         } else {
-            const sim = distractorsMap[targetChar] || ['X', 'Y', 'Z'];
+            const sim = distractorsMap[targetChar] || ['X', 'Y'];
             char = sim[Math.floor(Math.random() * sim.length)];
         }
-        const size = Math.min(canvas.width * 0.08, 45);
-        let x = Math.max(size, Math.min(canvas.width - size, Math.random() * canvas.width));
-        objects.push({ char, type, x, y: -size, size, speed: canvas.height * config.speed * (0.9 + Math.random() * 0.2) });
+        objects.push({ char, type, x: Math.random()*(canvas.width-40)+20, y: -40, size: 42, speed: (canvas.height * 0.0035) * (0.9 + Math.random() * 0.3) });
     }
 
     function gameLoop() {
         if (!isPlaying) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
         let now = Date.now();
         let displayTime = Math.max(0, 49.50 + totalBonusTime - (now - startTime)/1000);
         timeDisplay.innerText = `時間: ${displayTime.toFixed(2)}s`;
@@ -181,7 +172,7 @@
                 ctx.font = `bold ${o.size}px Arial`;
                 ctx.fillStyle = (currentF && o.char === currentF[currentCharIdx]) ? '#f1c40f' : 'white';
                 ctx.fillText(o.char, o.x, o.y);
-                if (Math.hypot(player.x - o.x, player.y - o.y) < (player.size + o.size) * 0.45) {
+                if (Math.hypot(player.x - o.x, player.y - o.y) < 50) {
                     handleCatch(o); objects.splice(i, 1); continue;
                 }
                 if (o.y > canvas.height + 50) objects.splice(i, 1);
@@ -195,7 +186,7 @@
         if (!isPlaying || isSwitching) return;
         const currentF = formulas[currentFormulaIdx];
         if (!currentF) return;
-        if (obj.type === 'clock') { totalBonusTime += 5; showMsg("⏰ 時間 +5 秒"); }
+        if (obj.type === 'clock') { totalBonusTime += 5; showMsg("⏰ +5s"); }
         else if (obj.char === currentF[currentCharIdx]) {
             currentCharIdx++;
             if (currentCharIdx >= currentF.length) {
@@ -204,19 +195,25 @@
                 currentFormulaIdx++;
                 currentCharIdx = 0;
                 totalBonusTime += 5;
-                showMsg("✅ 公式完成！");
+                showMsg("✅ Next!");
                 if (currentFormulaIdx >= formulas.length) { endGame(true); } 
-                else { setTimeout(() => { updateFormulaDisplay(); isSwitching = false; }, 800); }
+                else { 
+                    setTimeout(() => { 
+                        updateFormulaDisplay(); 
+                        isSwitching = false; 
+                        console.log("Formula Switched to: " + currentFormulaIdx);
+                    }, 1000); // 增加到 1 秒緩衝，確保第三條公式載入穩定
+                }
             } else { updateFormulaDisplay(); }
         } else {
-            const config = diffSettings[currentDiff];
-            if (config.reset) { currentCharIdx = 0; showMsg("❌ Reset"); }
-            else { totalBonusTime -= config.penalty; showMsg(`❌ -${config.penalty}s`); }
+            const penalty = (currentDiff == 0) ? 1 : 2;
+            totalBonusTime -= penalty;
+            showMsg(`❌ -${penalty}s`);
             updateFormulaDisplay();
         }
     }
 
-    function showMsg(txt) { powerUpMsg.innerText = txt; powerUpMsg.style.opacity = 1; setTimeout(() => { powerUpMsg.style.opacity = 0; }, 1500); }
+    function showMsg(txt) { powerUpMsg.innerText = txt; powerUpMsg.style.opacity = 1; setTimeout(() => { powerUpMsg.style.opacity = 0; }, 1000); }
 
     async function endGame(win) {
         isPlaying = false; cancelAnimationFrame(animationId);
@@ -226,11 +223,11 @@
         overlay.classList.remove('hidden');
         if (win) {
             try {
-                const pName = playerNameInput.value.trim().toUpperCase() || "ANONYMOUS";
+                const pName = playerNameInput.value.trim().toUpperCase() || "ANON";
                 const compositeScore = (currentFormulaIdx * 100000) + (100000 - Math.floor(timeUsed * 100));
                 await addDoc(collection(db, "physics_leaderboard"), { name: pName, completed: currentFormulaIdx, timeUsed: timeUsed, difficulty: currentDiff, compositeScore, timestamp: new Date() });
                 renderLeaderboard();
-            } catch (e) { console.error(e); }
+            } catch (e) { }
         }
     }
 
@@ -238,9 +235,8 @@
         try {
             const q = query(collection(db, "physics_leaderboard"), orderBy("compositeScore", "desc"), limit(5));
             const snap = await getDocs(q);
-            const list = document.getElementById('scoreList');
-            list.innerHTML = '';
-            snap.forEach(doc => { const d = doc.data(); list.innerHTML += `<li><b>${d.name}</b> - ${d.completed} 條 (${d.timeUsed}s)</li>`; });
+            const list = document.getElementById('scoreList'); list.innerHTML = '';
+            snap.forEach(doc => { const d = doc.data(); list.innerHTML += `<li><b>${d.name}</b>: ${d.completed}條 (${d.timeUsed}s)</li>`; });
         } catch (e) { }
     }
 

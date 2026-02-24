@@ -3,32 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 V0.6.1.2</title>
+<title>蘋果的考驗 V0.6.1.3</title>
 <style>
     :root { --accent: #e74c3c; --gold: #f1c40f; }
     body { margin: 0; padding: 0; background-color: #121212; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; color: white; }
     #gameContainer { position: relative; width: 100vw; height: 100vh; background-color: #1a1a1a; overflow: hidden; }
     canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-    
-    /* UI 頂部 */
     #ui { position: absolute; top: 10px; left: 15px; right: 15px; display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; pointer-events: none; z-index: 5; text-shadow: 2px 2px 4px black; }
     #targetEquation { font-size: clamp(14px, 4.5vw, 28px); font-weight: bold; color: var(--gold); background: rgba(0,0,0,0.7); padding: 10px 15px; border-radius: 12px; display: inline-block; min-width: 88%; border: 1px solid rgba(255,255,255,0.1); }
     #equationHeader { position: absolute; top: 40px; left: 0; right: 0; text-align: center; z-index: 5; pointer-events: none; }
     .next-char { color: #fff; text-decoration: underline; text-underline-offset: 5px; animation: blink 0.8s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-    /* 難度掣手機優化 */
-    .diff-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 15px 0; max-width: 300px; }
-    .diff-btn-label { background: #333; padding: 10px 15px; border-radius: 8px; font-size: 13px; cursor: pointer; border: 2px solid transparent; flex: 1 1 40%; text-align: center; }
-    input[type="radio"]:checked + .diff-btn-label { border-color: var(--accent); background: #442222; }
-
-    /* Overlay */
     .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 20; padding: 20px; box-sizing: border-box; }
     .hidden { display: none !important; }
     .btn-apple { padding: 12px 30px; font-size: 18px; cursor: pointer; border: none; border-radius: 50px; background: var(--accent); color: white; font-weight: bold; margin: 10px; }
-    
-    /* 倒數 */
     #countdownOverlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 70px; font-weight: bold; color: var(--accent); z-index: 40; pointer-events: none; }
+    .diff-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0; width: 100%; max-width: 320px; }
+    .diff-btn-label { background: #333; padding: 10px; border-radius: 8px; font-size: 12px; cursor: pointer; border: 2px solid transparent; flex: 1 1 45%; }
+    input[type="radio"]:checked + .diff-btn-label { border-color: var(--accent); background: #442222; }
+    #rulesBox { background: rgba(255,255,255,0.05); border: 1px solid var(--gold); padding: 15px; border-radius: 12px; font-size: 13px; text-align: left; max-width: 400px; margin: 10px 0; line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -36,27 +29,29 @@
 <div id="gameContainer">
     <div id="ui">
         <div id="levelDisplay">關卡: 1/4</div>
-        <div id="timeDisplay">時間: 9.81s</div>
-        <div id="versionTag">V0.6.1.2</div>
+        <div id="timeDisplay">剩餘: 19.62s</div>
+        <div id="versionTag">V0.6.1.3</div>
     </div>
     <div id="equationHeader"><div id="targetEquation">準備挑戰...</div></div>
     <div id="countdownOverlay" class="hidden"></div>
     <canvas id="gameCanvas"></canvas>
-    
+
     <div id="mainMenu" class="overlay">
         <h1 style="color:var(--accent); margin:0;">🍎 蘋果的考驗</h1>
-        <p style="opacity:0.8; font-size:14px;">研習物理，需心無旁鶩。</p>
-        
-        <input type="text" id="playerName" maxlength="12" placeholder="輸入學霸名字" style="font-size: 18px; padding: 12px; border-radius: 10px; text-align: center; border: none; margin: 15px 0; width: 80%; max-width: 250px;">
-
+        <div id="rulesBox">
+            <h3 style="margin:0 0 10px 0; text-align:center; color:var(--gold);">📜 遊戲說明</h3>
+            • <b>目標</b>：依序接住正確符號完成 4 條物理公式。<br>
+            • <b>時間</b>：每關開始有 <b>19.62s</b>。正確 +0.5s，⏰ +3s。<br>
+            • <b>操作</b>：電腦用 ← / → 微調，按住 <b>Shift</b> 快速衝刺。
+        </div>
+        <input type="text" id="playerName" maxlength="12" placeholder="輸入學霸名字" style="font-size: 18px; padding: 10px; border-radius: 10px; text-align: center; border: none; margin: 5px 0; width: 80%; max-width: 250px;">
         <div class="diff-group">
             <input type="radio" name="diff" value="0" id="d0" checked style="display:none"><label for="d0" class="diff-btn-label">難度 0</label>
             <input type="radio" name="diff" value="9.81" id="d1" style="display:none"><label for="d1" class="diff-btn-label">難度 9.81</label>
             <input type="radio" name="diff" value="19.62" id="d2" style="display:none"><label for="d2" class="diff-btn-label">難度 19.62</label>
             <input type="radio" name="diff" value="29.43" id="d3" style="display:none"><label for="d3" class="diff-btn-label">難度 29.43</label>
         </div>
-
-        <button class="btn-apple" id="startChallengeBtn">開始挑戰</button>
+        <button class="btn-apple" onclick="startGame()">開始挑戰</button>
     </div>
 
     <div id="levelClearOverlay" class="overlay hidden">
@@ -67,7 +62,7 @@
 
     <div id="finalOverlay" class="overlay hidden">
         <h1 style="color:var(--gold)">🏆 全部通關</h1>
-        <div id="finalStats" style="margin: 15px 0;"></div>
+        <div id="finalStats"></div>
         <button class="btn-apple" onclick="location.reload()">返回主頁</button>
     </div>
 </div>
@@ -76,7 +71,6 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // 🔴 請確保填入你的 Firebase Config 🔴
     const firebaseConfig = {
       apiKey: "AIzaSyDoHHh-8Gm5tt_uWF4IPGIGfOTNYnAgHr4",
       authDomain: "physicsgame-rl.firebaseapp.com",
@@ -92,7 +86,8 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const formulas = [['v', '=', 'u', '+', 'a', 't'], ['s', '=', '½', '(', 'u', '+', 'v', ')', 't'], ['s', '=', 'u', 't', '+', '½', 'a', 't', '²'], ['v', '²', '=', 'u', '²', '+', '2', 'a', 's']];
-    
+    const distMap = { 'v': ['u'], 'u': ['v'], 's': ['d'], 'a': ['g'], 't': ['f'], '=': ['≈'], '+': ['-'], '²': ['³'], '½': ['⅓'], '2': ['3'] };
+
     let isPlaying = false, currentLevel = 0, currentCharIdx = 0, startTime = 0, timeBonus = 0;
     let levelTimes = [0,0,0,0], objects = [], currentDiff = 0;
     const player = { x: 0, y: 0, size: 60 };
@@ -101,14 +96,13 @@
     function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; player.x = canvas.width/2; player.y = canvas.height - 100; }
     window.addEventListener('resize', resize); resize();
 
-    // 鍵盤與手機控制
     window.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowLeft') { if (e.shiftKey) controlState.fastLeft = true; else controlState.left = true; }
         if (e.key === 'ArrowRight') { if (e.shiftKey) controlState.fastRight = true; else controlState.right = true; }
     });
     window.addEventListener('keyup', (e) => { controlState.left = controlState.right = controlState.fastLeft = controlState.fastRight = false; });
 
-    document.getElementById('startChallengeBtn').onclick = () => {
+    window.startGame = () => {
         currentDiff = parseFloat(document.querySelector('input[name="diff"]:checked').value);
         document.getElementById('mainMenu').classList.add('hidden');
         startLevel(0);
@@ -116,15 +110,16 @@
 
     async function startLevel(idx) {
         isPlaying = false;
-        currentLevel = idx; currentCharIdx = 0; timeBonus = 0; objects = [];
+        objects = []; // 🌟 核心修正：倒數前立即清空物件
+        currentLevel = idx; currentCharIdx = 0; timeBonus = 0;
         document.getElementById('levelDisplay').innerText = `關卡: ${currentLevel + 1}/4`;
         
         const count = document.getElementById('countdownOverlay');
         count.classList.remove('hidden');
-        const steps = [`第 ${idx+1} 關`, "3", "2", "1", "GO!"];
+        const steps = [`第 ${idx+1} 關`, "READY?", "3", "2", "1", "GO!"];
         for (let s of steps) {
             count.innerText = s;
-            await new Promise(r => setTimeout(r, 600));
+            await new Promise(r => setTimeout(r, 650));
         }
         count.classList.add('hidden');
         
@@ -148,11 +143,10 @@
     function gameLoop() {
         if (!isPlaying) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const elapsed = (Date.now() - startTime) / 1000;
-        const remain = Math.max(0, 9.81 + timeBonus - elapsed);
-        document.getElementById('timeDisplay').innerText = `時間: ${remain.toFixed(2)}s`;
+        const remain = Math.max(0, 19.62 + timeBonus - (Date.now() - startTime)/1000); // 🌟 19.62s 開局
+        document.getElementById('timeDisplay').innerText = `剩餘: ${remain.toFixed(2)}s`;
         
-        if (remain <= 0) { isPlaying = false; alert("時間到！重試本關。"); startLevel(currentLevel); return; }
+        if (remain <= 0) { isPlaying = false; alert("時間到！"); startLevel(currentLevel); return; }
 
         const micro = canvas.width * 0.009, fast = canvas.width * 0.04;
         if (controlState.fastLeft) player.x -= fast; else if (controlState.left) player.x -= micro;
@@ -165,23 +159,22 @@
             const o = objects[i]; o.y += o.speed;
             ctx.font = "bold 38px Arial"; ctx.fillStyle = (o.char === formulas[currentLevel][currentCharIdx]) ? "#f1c40f" : "white";
             ctx.fillText(o.char, o.x, o.y);
-            
             if (Math.abs(player.x - o.x) < 40 && Math.abs(player.y - o.y) < 40) {
                 handleCatch(o); objects.splice(i, 1);
             } else if (o.y > canvas.height + 50) objects.splice(i, 1);
         }
 
-        // 🌟 核心優化：更密集的生成節奏 🌟
-        if (Math.random() < 0.08) {
+        if (Math.random() < 0.06) {
             const f = formulas[currentLevel];
-            let char = (Math.random() < 0.85) ? f[currentCharIdx] : 'X'; // 85% 正確率
-            const speedBase = 4 + (currentDiff / 10);
-            objects.push({ char, x: Math.random()*(canvas.width-40)+20, y: -50, speed: speedBase + Math.random()*3 });
+            let char = (Math.random() < 0.65) ? f[currentCharIdx] : 'X'; // 🌟 65% 正確率，讓干擾項出現
+            if (Math.random() < 0.05) char = '⏰';
+            objects.push({ char, x: Math.random()*(canvas.width-40)+20, y: -50, speed: 4 + Math.random()*3 });
         }
         requestAnimationFrame(gameLoop);
     }
 
     function handleCatch(o) {
+        if (o.char === '⏰') { timeBonus += 3; return; }
         if (o.char === formulas[currentLevel][currentCharIdx]) {
             currentCharIdx++; timeBonus += 0.5;
             if (currentCharIdx >= formulas[currentLevel].length) {
@@ -189,10 +182,14 @@
                 levelTimes[currentLevel] = (Date.now() - startTime) / 1000;
                 showLevelClear();
             } else updateUI();
-        } else { timeBonus -= 1.5; }
+        } else {
+            if (currentDiff >= 19.62) { currentCharIdx = 0; updateUI(); }
+            else timeBonus -= 1.5;
+        }
     }
 
     function showLevelClear() {
+        objects = []; // 🌟 核心修正：過關立即清理
         const overlay = document.getElementById('levelClearOverlay');
         document.getElementById('stageTimeText').innerText = `本關用時: ${levelTimes[currentLevel].toFixed(2)}s`;
         overlay.classList.remove('hidden');
@@ -209,7 +206,6 @@
         levelTimes.forEach((t, i) => { total += t; html += `<li>關卡 ${i+1}: ${t.toFixed(2)}s</li>`; });
         html += `</ul><h2 style='color:var(--accent)'>總成績: ${total.toFixed(2)}s</h2>`;
         document.getElementById('finalStats').innerHTML = html;
-        
         const name = document.getElementById('playerName').value || "ANONYMOUS";
         addDoc(collection(db, "physics_leaderboard"), { name, totalTime: total.toFixed(2), compositeScore: 1000000-Math.floor(total*100) });
     }

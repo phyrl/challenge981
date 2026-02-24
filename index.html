@@ -3,26 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 - 修正版</title>
+<title>蘋果的考驗 - 順序背誦版</title>
 <style>
     body { margin: 0; padding: 0; background-color: #2c3e50; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; color: white; }
     #gameContainer { position: relative; width: 100vw; height: 100vh; background-color: #34495e; overflow: hidden; }
     canvas { display: block; width: 100%; height: 100%; touch-action: none; }
     #ui { position: absolute; top: 10px; left: 15px; right: 15px; display: flex; justify-content: space-between; font-size: 20px; font-weight: bold; pointer-events: none; z-index: 5; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
     #equationHeader { position: absolute; top: 50px; left: 0; right: 0; text-align: center; z-index: 5; pointer-events: none; padding: 10px; }
-    #targetEquation { font-size: clamp(20px, 6vw, 42px); font-weight: bold; color: #f1c40f; background: rgba(0,0,0,0.6); padding: 15px; border-radius: 15px; display: inline-block; letter-spacing: 3px; min-width: 80%; box-shadow: 0 4px 15px rgba(0,0,0,0.3); line-height: 1.5; }
-    .next-char { color: #ffffff; text-decoration: underline; text-underline-offset: 8px; animation: blink 0.8s infinite; }
+    #targetEquation { font-size: clamp(18px, 6vw, 36px); font-weight: bold; color: #f1c40f; background: rgba(0,0,0,0.6); padding: 12px; border-radius: 12px; display: inline-block; letter-spacing: 2px; min-width: 85%; box-shadow: 0 4px 15px rgba(0,0,0,0.3); line-height: 1.4; }
+    .next-char { color: #ffffff; text-decoration: underline; text-underline-offset: 6px; animation: blink 0.8s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    #powerUpMsg { position: absolute; top: 160px; left: 50%; transform: translateX(-50%); font-size: 24px; font-weight: bold; color: #2ecc71; text-shadow: 0 0 10px #27ae60; opacity: 0; transition: opacity 0.3s; z-index: 5; }
+    #powerUpMsg { position: absolute; top: 160px; left: 50%; transform: translateX(-50%); font-size: 22px; font-weight: bold; color: #2ecc71; text-shadow: 0 0 10px #27ae60; opacity: 0; transition: opacity 0.3s; z-index: 5; }
     #controls { position: absolute; bottom: 30px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 10vw; z-index: 10; pointer-events: none; }
-    .control-btn { width: 80px; height: 80px; border-radius: 50%; background: rgba(0, 0, 0, 0.5); color: white; font-size: 36px; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; user-select: none; border: 2px solid rgba(255,255,255,0.3); }
+    .control-btn { width: 75px; height: 75px; border-radius: 50%; background: rgba(0, 0, 0, 0.5); color: white; font-size: 32px; display: flex; justify-content: center; align-items: center; pointer-events: auto; cursor: pointer; user-select: none; border: 2px solid rgba(255,255,255,0.3); }
     #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 20; padding: 20px; box-sizing: border-box; }
-    #playerName { font-size: 20px; padding: 12px; border-radius: 8px; border: none; width: 80%; max-width: 250px; margin: 15px 0; text-align: center; text-transform: uppercase; }
-    #difficultyUI { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 15px 0; }
-    .diff-label { background: #444; padding: 10px 15px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: 0.3s; font-size: 14px; }
+    #playerName { font-size: 18px; padding: 12px; border-radius: 8px; border: none; width: 80%; max-width: 250px; margin: 10px 0; text-align: center; text-transform: uppercase; }
+    #difficultyUI { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0; }
+    .diff-label { background: #444; padding: 8px 12px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: 0.3s; font-size: 13px; }
     input[type="radio"]:checked + .diff-label { border-color: #e74c3c; background: #c0392b; }
-    button.start { padding: 15px 50px; font-size: 24px; cursor: pointer; border: none; border-radius: 50px; background-color: #e74c3c; color: white; font-weight: bold; margin-top: 20px; }
-    #leaderboard { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; width: 90%; max-width: 400px; margin: 15px 0; font-size: 14px; text-align: left; }
+    button.start { padding: 12px 40px; font-size: 22px; cursor: pointer; border: none; border-radius: 50px; background-color: #e74c3c; color: white; font-weight: bold; margin-top: 15px; }
+    #leaderboard { background: rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; width: 95%; max-width: 400px; margin: 10px 0; font-size: 13px; text-align: left; }
     .hidden { display: none !important; }
 </style>
 </head>
@@ -30,12 +30,12 @@
 
 <div id="gameContainer">
     <div id="ui">
-        <div id="timeDisplay">時間: 33.00s</div>
+        <div id="timeDisplay">時間: 49.50s</div>
         <div id="scoreDisplay">進度: 0/4</div>
     </div>
     <div id="equationHeader">
-        <div style="font-size:16px; color:#bdc3c7; margin-bottom:5px;">正在拼湊公式...</div>
-        <div id="targetEquation">載入中...</div>
+        <div style="font-size:14px; color:#bdc3c7; margin-bottom:4px;">請順序接取符號：</div>
+        <div id="targetEquation">準備中...</div>
     </div>
     <div id="powerUpMsg">⭐⭐ 公式護盾 ⭐⭐</div>
     <canvas id="gameCanvas"></canvas>
@@ -44,9 +44,9 @@
         <div class="control-btn" id="btnRight">▶</div>
     </div>
     <div id="overlay">
-        <h1 style="color: #e74c3c; margin: 0;">🍎 蘋果的考驗</h1>
-        <p style="color: #f1c40f;">順序填充背誦版</p>
-        <div id="finalScore" class="hidden" style="font-size: 18px; margin: 10px;"></div>
+        <h1 style="color: #e74c3c; margin: 0; font-size: 28px;">🍎 蘋果的考驗</h1>
+        <p style="color: #f1c40f; margin: 5px;">物理勻加速公式挑戰</p>
+        <div id="finalScore" class="hidden" style="font-size: 16px; margin: 8px; color: #fff;"></div>
         <input type="text" id="playerName" maxlength="10" placeholder="你的名字">
         <div id="difficultyUI">
             <input type="radio" name="diff" value="0" id="d0" checked class="hidden"><label for="d0" class="diff-label">難度 0</label>
@@ -55,10 +55,10 @@
             <input type="radio" name="diff" value="39.24" id="d3" class="hidden"><label for="d3" class="diff-label">難度 39.24</label>
         </div>
         <div id="leaderboard">
-            <h3 style="text-align:center; margin-top:0;">學霸榜 (Top 5)</h3>
+            <h3 style="text-align:center; margin-top:0; font-size: 18px; color: #f1c40f;">☁️ 雲端榜 (Top 5)</h3>
             <ol id="scoreList"><li>載入中...</li></ol>
         </div>
-        <button class="start" id="startBtn">開始挑戰 (33秒)</button>
+        <button class="start" id="startBtn">開始挑戰 (49.5s)</button>
     </div>
 </div>
 
@@ -102,17 +102,20 @@
         '²': ['³', '2'], '½': ['⅓', '¼'], '2': ['3', 'z']
     };
 
-    let isPlaying = false, startTime, totalBonusTime = 0, currentDisplayTime = 33.00;
+    let isPlaying = false, startTime, totalBonusTime = 0, currentDisplayTime = 49.50;
     let currentFormulaIdx = 0, currentCharIdx = 0;
     let animationId, currentDiff = 0, isInvincible = false, invincibleTimer = null;
     let player = { x: 0, y: 0, size: 0 }, objects = [];
+    let isSwitching = false;
+
     const keys = { ArrowLeft: false, ArrowRight: false };
 
+    // 🌟 優化機率：大幅增加 Correct% 減少 Distractor%
     const diffSettings = {
-        '0':     { trapRatio: 1, penalty: 1, reset: false, star: false, speed: 0.0035 },
-        '9.81':  { trapRatio: 3, penalty: 2, reset: false, star: false, speed: 0.0055 },
-        '19.62': { trapRatio: 5, penalty: 0, reset: true,  star: true,  speed: 0.0075 },
-        '39.24': { trapRatio: 10, penalty: 0, reset: true,  star: true,  speed: 0.0100 }
+        '0':     { speed: 0.0035, correctProb: 0.70, clockProb: 0.04, penalty: 1, reset: false, star: false },
+        '9.81':  { speed: 0.0055, correctProb: 0.55, clockProb: 0.04, penalty: 2, reset: false, star: false },
+        '19.62': { speed: 0.0075, correctProb: 0.45, clockProb: 0.03, penalty: 0, reset: true,  star: true },
+        '39.24': { speed: 0.0100, correctProb: 0.35, clockProb: 0.03, penalty: 0, reset: true,  star: true }
     };
 
     function resize() {
@@ -125,16 +128,12 @@
     window.addEventListener('resize', resize);
     resize();
 
-    window.addEventListener('keydown', e => { if(e.key==='ArrowLeft') keys.ArrowLeft=true; if(e.key==='ArrowRight') keys.ArrowRight=true; });
-    window.addEventListener('keyup', e => { if(e.key==='ArrowLeft') keys.ArrowLeft=false; if(e.key==='ArrowRight') keys.ArrowRight=false; });
-    
     const bLeft = document.getElementById('btnLeft');
     const bRight = document.getElementById('btnRight');
-    const handleTouch = (key, state) => (e) => { e.preventDefault(); keys[key] = state; };
-    bLeft.addEventListener('touchstart', handleTouch('ArrowLeft', true), {passive:false});
-    bLeft.addEventListener('touchend', handleTouch('ArrowLeft', false));
-    bRight.addEventListener('touchstart', handleTouch('ArrowRight', true), {passive:false});
-    bRight.addEventListener('touchend', handleTouch('ArrowRight', false));
+    bLeft.addEventListener('touchstart', (e) => { e.preventDefault(); keys.ArrowLeft = true; }, {passive:false});
+    bLeft.addEventListener('touchend', () => keys.ArrowLeft = false);
+    bRight.addEventListener('touchstart', (e) => { e.preventDefault(); keys.ArrowRight = true; }, {passive:false});
+    bRight.addEventListener('touchend', () => keys.ArrowRight = false);
 
     function updateFormulaDisplay() {
         if (currentFormulaIdx >= formulas.length) return;
@@ -150,15 +149,17 @@
     }
 
     function spawnObject() {
-        if (!isPlaying || currentFormulaIdx >= formulas.length) return;
+        if (!isPlaying || isSwitching || currentFormulaIdx >= formulas.length) return;
         const config = diffSettings[currentDiff];
         const targetChar = formulas[currentFormulaIdx][currentCharIdx];
         const rand = Math.random();
         let char = '', type = 'distractor';
         
-        if (rand < 0.02) { char = '⏰'; type = 'clock'; }
-        else if (rand < 0.04 && config.star) { char = '⭐'; type = 'star'; }
-        else if (rand < 0.35) { char = targetChar; type = 'correct'; }
+        if (rand < config.clockProb) { char = '⏰'; type = 'clock'; }
+        else if (rand < config.clockProb + 0.02 && config.star) { char = '⭐'; type = 'star'; }
+        else if (rand < config.clockProb + (config.star ? 0.02 : 0) + config.correctProb) { 
+            char = targetChar; type = 'correct'; 
+        }
         else {
             const sim = distractorsMap[targetChar] || ['X', 'Y', 'Z'];
             char = sim[Math.floor(Math.random() * sim.length)];
@@ -166,7 +167,7 @@
 
         const size = Math.min(canvas.width * 0.08, 45);
         let x = (type === 'correct') ? 
-                player.x - (canvas.width * 0.2) + Math.random() * (canvas.width * 0.4) :
+                player.x - (canvas.width * 0.25) + Math.random() * (canvas.width * 0.5) :
                 Math.random() * (canvas.width - size);
         x = Math.max(size, Math.min(canvas.width - size, x));
 
@@ -178,71 +179,51 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         let elapsed = (Date.now() - startTime) / 1000;
-        currentDisplayTime = Math.max(0, 33.00 + totalBonusTime - elapsed);
+        currentDisplayTime = Math.max(0, 49.50 + totalBonusTime - elapsed);
         timeDisplay.innerText = `時間: ${currentDisplayTime.toFixed(2)}s`;
         if (currentDisplayTime <= 0) { endGame(false); return; }
 
-        const pSpeed = canvas.width * 0.018;
-        if (keys.ArrowLeft && player.x > player.size/2) player.x -= pSpeed;
-        if (keys.ArrowRight && player.x < canvas.width - player.size/2) player.x += pSpeed;
+        if (keys.ArrowLeft && player.x > player.size/2) player.x -= canvas.width * 0.018;
+        if (keys.ArrowRight && player.x < canvas.width - player.size/2) player.x += canvas.width * 0.018;
 
-        ctx.font = `${player.size}px Arial`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.font = `${player.size}px Arial`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         if (isInvincible) { ctx.shadowColor = "#f1c40f"; ctx.shadowBlur = 20; }
-        ctx.fillText('🍎', player.x, player.y);
-        ctx.shadowBlur = 0;
+        ctx.fillText('🍎', player.x, player.y); ctx.shadowBlur = 0;
 
-        for (let i = objects.length - 1; i >= 0; i--) {
-            const o = objects[i];
-            o.y += o.speed;
-            ctx.font = `bold ${o.size}px Arial`;
-            ctx.fillStyle = (o.type === 'correct' && currentDiff == 0) ? '#f1c40f' : 'white';
-            ctx.fillText(o.char, o.x, o.y);
+        if (!isSwitching) {
+            for (let i = objects.length - 1; i >= 0; i--) {
+                const o = objects[i]; o.y += o.speed;
+                ctx.font = `bold ${o.size}px Arial`;
+                ctx.fillStyle = (o.type === 'correct' && currentDiff == 0) ? '#f1c40f' : 'white';
+                ctx.fillText(o.char, o.x, o.y);
 
-            if (Math.hypot(player.x - o.x, player.y - o.y) < (player.size + o.size) * 0.45) {
-                handleCatch(o);
-                objects.splice(i, 1);
-                continue;
+                if (Math.hypot(player.x - o.x, player.y - o.y) < (player.size + o.size) * 0.45) {
+                    handleCatch(o); objects.splice(i, 1); continue;
+                }
+                if (o.y > canvas.height + 50) objects.splice(i, 1);
             }
-            if (o.y > canvas.height + 50) objects.splice(i, 1);
+            if (Math.random() < 0.035) spawnObject();
         }
-
-        if (Math.random() < 0.04) spawnObject();
         animationId = requestAnimationFrame(gameLoop);
     }
 
     function handleCatch(obj) {
-        if (!isPlaying) return;
+        if (!isPlaying || isSwitching) return;
         const config = diffSettings[currentDiff];
-        
-        if (obj.type === 'clock') {
-            totalBonusTime += 5;
-            showMsg("⏰ 時間 +5 秒");
-        } else if (obj.type === 'star') {
-            activateStar();
-        } else if (obj.type === 'correct') {
+        if (obj.type === 'clock') { totalBonusTime += 5; showMsg("⏰ 時間 +5 秒"); }
+        else if (obj.type === 'star') { activateStar(); }
+        else if (obj.type === 'correct') {
             currentCharIdx++;
             if (currentCharIdx >= formulas[currentFormulaIdx].length) {
-                currentFormulaIdx++;
-                currentCharIdx = 0;
-                totalBonusTime += 5;
-                objects = []; // 關鍵修正：公式切換時清場
+                isSwitching = true; objects = []; currentFormulaIdx++; currentCharIdx = 0; totalBonusTime += 5;
                 showMsg("✅ 完成公式！加時 5s");
-                if (currentFormulaIdx >= formulas.length) {
-                    endGame(true);
-                    return;
-                }
-            }
-            updateFormulaDisplay();
+                if (currentFormulaIdx >= formulas.length) { endGame(true); } 
+                else { setTimeout(() => { updateFormulaDisplay(); isSwitching = false; }, 150); }
+            } else { updateFormulaDisplay(); }
         } else {
             if (isInvincible) { showMsg("🛡️ 已阻擋"); return; }
-            if (config.reset) {
-                currentCharIdx = 0;
-                showMsg("❌ 錯誤！公式重置");
-            } else {
-                totalBonusTime -= config.penalty;
-                showMsg(`❌ 錯誤！扣 ${config.penalty} 秒`);
-            }
+            if (config.reset) { currentCharIdx = 0; showMsg("❌ 錯誤！公式重置"); }
+            else { totalBonusTime -= config.penalty; showMsg(`❌ 錯誤！扣 ${config.penalty} 秒`); }
             updateFormulaDisplay();
         }
     }
@@ -253,30 +234,25 @@
         invincibleTimer = setTimeout(() => { isInvincible = false; }, 5000);
     }
 
-    function showMsg(txt) {
-        powerUpMsg.innerText = txt; powerUpMsg.style.opacity = 1;
-        setTimeout(() => { if (powerUpMsg.innerText === txt) powerUpMsg.style.opacity = 0; }, 1500);
-    }
+    function showMsg(txt) { powerUpMsg.innerText = txt; powerUpMsg.style.opacity = 1; setTimeout(() => { if (powerUpMsg.innerText === txt) powerUpMsg.style.opacity = 0; }, 1500); }
 
     async function endGame(win) {
-        isPlaying = false;
-        cancelAnimationFrame(animationId);
-        const timeUsed = (33.00 + totalBonusTime - currentDisplayTime).toFixed(2);
+        isPlaying = false; cancelAnimationFrame(animationId);
+        const timeUsed = (49.50 + totalBonusTime - currentDisplayTime).toFixed(2);
         const pName = playerNameInput.value.trim().toUpperCase() || "ANONYMOUS";
         
-        document.getElementById('finalScore').innerText = win ? `🎉 挑戰成功！耗時：${timeUsed}s` : `時間到！完成了 ${currentFormulaIdx} 條公式`;
+        document.getElementById('finalScore').innerText = win ? `🎉 成功完成 4 條公式！耗時：${timeUsed}s` : `時間到！只完成了 ${currentFormulaIdx} 條公式`;
         document.getElementById('finalScore').classList.remove('hidden');
         overlay.classList.remove('hidden');
 
-        if (win) {
-            try {
-                const compositeScore = 400000 + (100000 - Math.floor(parseFloat(timeUsed)*100));
-                await addDoc(collection(db, "physics_leaderboard"), {
-                    name: pName, completed: 4, timeUsed: timeUsed, difficulty: currentDiff, compositeScore, timestamp: new Date()
-                });
-                renderLeaderboard();
-            } catch (e) { console.error(e); }
-        }
+        try {
+            // 🌟 排行榜權重優化：優先比較完成數，再比較時間
+            const compositeScore = (currentFormulaIdx * 100000) + (win ? (100000 - Math.floor(parseFloat(timeUsed)*100)) : 0);
+            await addDoc(collection(db, "physics_leaderboard"), {
+                name: pName, completed: currentFormulaIdx, timeUsed: timeUsed, difficulty: currentDiff, compositeScore, timestamp: new Date()
+            });
+            renderLeaderboard();
+        } catch (e) { console.error(e); }
     }
 
     async function renderLeaderboard() {
@@ -288,7 +264,9 @@
             if (snap.empty) list.innerHTML = '<li>未有紀錄</li>';
             snap.forEach(doc => {
                 const d = doc.data();
-                list.innerHTML += `<li><b>${d.name}</b> - ${d.timeUsed}s (難度 ${d.difficulty})</li>`;
+                const diffLabel = d.difficulty || "0";
+                // 🌟 顯示完成數目
+                list.innerHTML += `<li><b>${d.name}</b> - 完成 ${d.completed} 條 (${d.timeUsed}s) [難度 ${diffLabel}]</li>`;
             });
         } catch (e) { document.getElementById('scoreList').innerHTML = '<li>載入失敗</li>'; }
     }
@@ -296,11 +274,9 @@
     startBtn.onclick = () => {
         currentDiff = document.querySelector('input[name="diff"]:checked').value;
         currentFormulaIdx = 0; currentCharIdx = 0; totalBonusTime = 0;
-        objects = []; isPlaying = true; startTime = Date.now();
-        overlay.classList.add('hidden');
-        updateFormulaDisplay();
-        resize();
-        gameLoop();
+        objects = []; isPlaying = true; isSwitching = false;
+        startTime = Date.now(); overlay.classList.add('hidden');
+        updateFormulaDisplay(); resize(); gameLoop();
     };
 
     renderLeaderboard();

@@ -3,67 +3,123 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 V0.6.1.3</title>
+<title>蘋果的考驗 V0.6.2</title>
 <style>
-    :root { --accent: #e74c3c; --gold: #f1c40f; }
-    body { margin: 0; padding: 0; background-color: #121212; display: flex; justify-content: center; align-items: center; height: 100vh; height: 100dvh; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; color: white; }
-    #gameContainer { position: relative; width: 100vw; height: 100vh; background-color: #1a1a1a; overflow: hidden; }
-    canvas { display: block; width: 100%; height: 100%; touch-action: none; }
-    #ui { position: absolute; top: 10px; left: 15px; right: 15px; display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; pointer-events: none; z-index: 5; text-shadow: 2px 2px 4px black; }
-    #targetEquation { font-size: clamp(14px, 4.5vw, 28px); font-weight: bold; color: var(--gold); background: rgba(0,0,0,0.7); padding: 10px 15px; border-radius: 12px; display: inline-block; min-width: 88%; border: 1px solid rgba(255,255,255,0.1); }
-    #equationHeader { position: absolute; top: 40px; left: 0; right: 0; text-align: center; z-index: 5; pointer-events: none; }
-    .next-char { color: #fff; text-decoration: underline; text-underline-offset: 5px; animation: blink 0.8s infinite; }
+    :root { --accent: #e74c3c; --gold: #f1c40f; --bg: #0f0f0f; --panel: rgba(255, 255, 255, 0.08); }
+    body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; touch-action: none; }
+    #gameContainer { position: relative; width: 100vw; height: 100vh; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); }
+    canvas { display: block; width: 100%; height: 100%; }
+
+    /* UI 頂部與暫停 */
+    #ui { position: absolute; top: 12px; left: 15px; right: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 50; pointer-events: none; }
+    .ui-item { background: rgba(0,0,0,0.5); padding: 5px 12px; border-radius: 20px; font-weight: bold; border: 1px solid rgba(255,255,255,0.2); }
+    #pauseBtn { pointer-events: auto; cursor: pointer; background: var(--accent); border: none; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; transition: 0.2s; }
+    #pauseBtn:hover { transform: scale(1.1); box-shadow: 0 0 10px var(--accent); }
+
+    /* 公式顯示 */
+    #equationHeader { position: absolute; top: 60px; left: 0; right: 0; text-align: center; z-index: 40; pointer-events: none; }
+    #targetEquation { font-size: clamp(18px, 5vw, 34px); font-weight: bold; color: var(--gold); background: rgba(0,0,0,0.8); padding: 15px 25px; border-radius: 20px; display: inline-block; min-width: 80%; border: 2px solid rgba(241, 196, 15, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .next-char { color: #fff; text-decoration: underline; text-underline-offset: 8px; animation: blink 0.8s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 20; padding: 20px; box-sizing: border-box; }
+
+    /* 通用 Overlay */
+    .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 100; padding: 25px; box-sizing: border-box; backdrop-filter: blur(5px); }
     .hidden { display: none !important; }
-    .btn-apple { padding: 12px 30px; font-size: 18px; cursor: pointer; border: none; border-radius: 50px; background: var(--accent); color: white; font-weight: bold; margin: 10px; }
-    #countdownOverlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 70px; font-weight: bold; color: var(--accent); z-index: 40; pointer-events: none; }
-    .diff-group { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 10px 0; width: 100%; max-width: 320px; }
-    .diff-btn-label { background: #333; padding: 10px; border-radius: 8px; font-size: 12px; cursor: pointer; border: 2px solid transparent; flex: 1 1 45%; }
-    input[type="radio"]:checked + .diff-btn-label { border-color: var(--accent); background: #442222; }
-    #rulesBox { background: rgba(255,255,255,0.05); border: 1px solid var(--gold); padding: 15px; border-radius: 12px; font-size: 13px; text-align: left; max-width: 400px; margin: 10px 0; line-height: 1.5; }
+
+    /* 主選單美化 */
+    h1.title { font-size: clamp(36px, 10vw, 56px); margin: 0; color: var(--accent); text-shadow: 0 0 20px rgba(231, 76, 60, 0.5); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+    .menu-card { background: var(--panel); border: 1px solid rgba(255,255,255,0.1); padding: 25px; border-radius: 25px; width: 90%; max-width: 450px; margin-top: 20px; }
+    
+    .btn-main { padding: 15px 45px; font-size: 22px; cursor: pointer; border: none; border-radius: 50px; background: var(--accent); color: white; font-weight: bold; margin: 10px; transition: 0.3s; box-shadow: 0 5px 20px rgba(231, 76, 60, 0.4); }
+    .btn-main:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(231, 76, 60, 0.6); }
+    .btn-sub { background: #34495e; font-size: 16px; padding: 10px 25px; }
+
+    /* 倒數與金句 */
+    #countdownDisplay { font-size: 100px; font-weight: bold; color: var(--accent); text-shadow: 0 0 30px var(--accent); pointer-events: none; z-index: 200; }
+    .quote-box { animation: quoteFade 4s forwards; }
+    @keyframes quoteFade { 0% { opacity:0; transform:scale(0.95); } 20% { opacity:1; transform:scale(1); } 80% { opacity:1; } 100% { opacity:0; } }
+
+    /* 排行榜與分享 */
+    #statsTable { width: 100%; max-width: 320px; border-collapse: collapse; margin: 20px 0; }
+    #statsTable td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    #qrcode { background: white; padding: 8px; border-radius: 10px; margin: 15px 0; }
+
+    /* 浮動訊息 */
+    .float-msg { position: absolute; pointer-events: none; font-weight: bold; animation: floatUp 1s forwards; z-index: 60; }
+    @keyframes floatUp { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-60px); } }
 </style>
 </head>
 <body>
 
 <div id="gameContainer">
     <div id="ui">
-        <div id="levelDisplay">關卡: 1/4</div>
-        <div id="timeDisplay">剩餘: 19.62s</div>
-        <div id="versionTag">V0.6.1.3</div>
+        <div class="ui-item" id="levelDisplay">關卡: 1/4</div>
+        <div class="ui-item" id="timeDisplay" style="width: 100px;">19.62s</div>
+        <button id="pauseBtn" onclick="togglePause()">⏸ 暫停</button>
     </div>
+
     <div id="equationHeader"><div id="targetEquation">準備挑戰...</div></div>
-    <div id="countdownOverlay" class="hidden"></div>
+    <div id="countdownDisplay" class="hidden"></div>
+    <div id="msgContainer"></div>
     <canvas id="gameCanvas"></canvas>
 
     <div id="mainMenu" class="overlay">
-        <h1 style="color:var(--accent); margin:0;">🍎 蘋果的考驗</h1>
-        <div id="rulesBox">
-            <h3 style="margin:0 0 10px 0; text-align:center; color:var(--gold);">📜 遊戲說明</h3>
-            • <b>目標</b>：依序接住正確符號完成 4 條物理公式。<br>
-            • <b>時間</b>：每關開始有 <b>19.62s</b>。正確 +0.5s，⏰ +3s。<br>
-            • <b>操作</b>：電腦用 ← / → 微調，按住 <b>Shift</b> 快速衝刺。
+        <h1 class="title">🍎 蘋果的考驗</h1>
+        <p style="color:var(--gold); letter-spacing: 2px;">研習物理，需心無旁鶩。</p>
+        
+        <div class="menu-card">
+            <input type="text" id="playerName" maxlength="10" placeholder="輸入學霸名字" style="width: 80%; padding: 12px; border-radius: 10px; border: none; font-size: 18px; text-align: center; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;">
+                <label><input type="radio" name="diff" value="0" checked> 難度 0</label>
+                <label><input type="radio" name="diff" value="9.81"> 難度 9.81</label>
+                <label><input type="radio" name="diff" value="19.62"> 難度 19.62</label>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <button id="soundBtn" class="btn-main btn-sub" onclick="toggleSound()">🔊 聲效: ON</button>
+            </div>
+            <button class="btn-main" onclick="startLevel(0)">開始挑戰</button>
+            <button class="btn-main btn-sub" onclick="showRules(true)">詳細規則</button>
         </div>
-        <input type="text" id="playerName" maxlength="12" placeholder="輸入學霸名字" style="font-size: 18px; padding: 10px; border-radius: 10px; text-align: center; border: none; margin: 5px 0; width: 80%; max-width: 250px;">
-        <div class="diff-group">
-            <input type="radio" name="diff" value="0" id="d0" checked style="display:none"><label for="d0" class="diff-btn-label">難度 0</label>
-            <input type="radio" name="diff" value="9.81" id="d1" style="display:none"><label for="d1" class="diff-btn-label">難度 9.81</label>
-            <input type="radio" name="diff" value="19.62" id="d2" style="display:none"><label for="d2" class="diff-btn-label">難度 19.62</label>
-            <input type="radio" name="diff" value="29.43" id="d3" style="display:none"><label for="d3" class="diff-btn-label">難度 29.43</label>
-        </div>
-        <button class="btn-apple" onclick="startGame()">開始挑戰</button>
     </div>
 
-    <div id="levelClearOverlay" class="overlay hidden">
-        <h2 style="color:var(--gold)">關卡完成！</h2>
-        <p id="stageTimeText"></p>
-        <button class="btn-apple" id="nextLevelBtn">下一關</button>
+    <div id="rulesOverlay" class="overlay hidden">
+        <div class="menu-card" style="text-align: left;">
+            <h2 style="color:var(--gold); text-align: center;">📜 實驗指引</h2>
+            • <b>目標：</b>依序接取正確符號完成 4 條物理公式。<br>
+            • <b>計時：</b>每關 19.62s。正確 +0.5s，⏰ +3s。<br>
+            • <b>連擊：</b>連續接中 5 個，蘋果發光並進入倍率獎勵。<br>
+            • <b>懲罰：</b>接錯會扣時。高難度下接錯會 Reset 公式。<br>
+            • <b>操作：</b>← / → 慢速微調；按住 <b>Shift</b> 衝刺。
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn-main btn-sub" onclick="showRules(false)">返回主頁</button>
+            </div>
+        </div>
     </div>
 
-    <div id="finalOverlay" class="overlay hidden">
-        <h1 style="color:var(--gold)">🏆 全部通關</h1>
-        <div id="finalStats"></div>
-        <button class="btn-apple" onclick="location.reload()">返回主頁</button>
+    <div id="pauseOverlay" class="overlay hidden">
+        <h1 style="color:var(--gold)">PAUSE</h1>
+        <p>實驗暫停中，深呼吸...</p>
+        <button class="btn-main" onclick="togglePause()">恢復實驗</button>
+    </div>
+
+    <div id="resultOverlay" class="overlay hidden">
+        <h1 id="resultHeader" style="color:var(--gold)">🏆 實驗成功</h1>
+        <table id="statsTable"></table>
+        <h2 id="totalScoreText" style="color:var(--accent)"></h2>
+        <div id="shareArea">
+            <img id="qrcode" src="" alt="QR">
+            <br>
+            <button class="btn-main btn-sub" id="waShare">WhatsApp 分享</button>
+        </div>
+        <button class="btn-main" onclick="exitToHome()">完成並返回</button>
+    </div>
+
+    <div id="quoteOverlay" class="overlay hidden">
+        <div class="quote-box">
+            <div class="quote-text">「研習物理，需心無旁鶩。」</div>
+            <div class="quote-text" style="font-size: 0.8em; opacity: 0.8;">「嬉戲之時，莫忘探索真理。」</div>
+        </div>
     </div>
 </div>
 
@@ -86,47 +142,141 @@
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const formulas = [['v', '=', 'u', '+', 'a', 't'], ['s', '=', '½', '(', 'u', '+', 'v', ')', 't'], ['s', '=', 'u', 't', '+', '½', 'a', 't', '²'], ['v', '²', '=', 'u', '²', '+', '2', 'a', 's']];
-    const distMap = { 'v': ['u'], 'u': ['v'], 's': ['d'], 'a': ['g'], 't': ['f'], '=': ['≈'], '+': ['-'], '²': ['³'], '½': ['⅓'], '2': ['3'] };
+    
+    let isPlaying = false, isPaused = false, currentLevel = 0, currentCharIdx = 0;
+    let startTime, timeBonus = 0, levelTimes = [0,0,0,0], objects = [], combo = 0;
+    let soundOn = true, audioCtx = null, currentDiff = 0;
+    const player = { x: 0, y: 0, size: 65 };
+    const keys = { left: false, right: false, shift: false };
 
-    let isPlaying = false, currentLevel = 0, currentCharIdx = 0, startTime = 0, timeBonus = 0;
-    let levelTimes = [0,0,0,0], objects = [], currentDiff = 0;
-    const player = { x: 0, y: 0, size: 60 };
-    const controlState = { left: false, right: false, fastLeft: false, fastRight: false };
-
-    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; player.x = canvas.width/2; player.y = canvas.height - 100; }
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; player.x = canvas.width/2; player.y = canvas.height - 110; }
     window.addEventListener('resize', resize); resize();
 
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') { if (e.shiftKey) controlState.fastLeft = true; else controlState.left = true; }
-        if (e.key === 'ArrowRight') { if (e.shiftKey) controlState.fastRight = true; else controlState.right = true; }
-    });
-    window.addEventListener('keyup', (e) => { controlState.left = controlState.right = controlState.fastLeft = controlState.fastRight = false; });
+    // 聲效與音效
+    function playB(f, d, vol=0.05) {
+        if (!soundOn || !audioCtx) return;
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.frequency.setValueAtTime(f, audioCtx.currentTime);
+        g.gain.setValueAtTime(vol, audioCtx.currentTime);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + d);
+    }
 
-    window.startGame = () => {
-        currentDiff = parseFloat(document.querySelector('input[name="diff"]:checked').value);
-        document.getElementById('mainMenu').classList.add('hidden');
-        startLevel(0);
+    window.toggleSound = () => { soundOn = !soundOn; document.getElementById('soundBtn').innerText = soundOn ? "🔊 聲效: ON" : "🔇 聲效: OFF"; };
+    window.showRules = (s) => document.getElementById('rulesOverlay').classList.toggle('hidden', !s);
+    
+    window.togglePause = () => {
+        if (!isPlaying) return;
+        isPaused = !isPaused;
+        document.getElementById('pauseOverlay').classList.toggle('hidden', !isPaused);
+        if (!isPaused) { startTime = Date.now() - (lastRemain * 1000); requestAnimationFrame(gameLoop); }
     };
 
-    async function startLevel(idx) {
-        isPlaying = false;
-        objects = []; // 🌟 核心修正：倒數前立即清空物件
-        currentLevel = idx; currentCharIdx = 0; timeBonus = 0;
-        document.getElementById('levelDisplay').innerText = `關卡: ${currentLevel + 1}/4`;
+    window.addEventListener('keydown', e => { 
+        if(e.key==='ArrowLeft') keys.left=true; if(e.key==='ArrowRight') keys.right=true; if(e.key==='Shift') keys.shift=true;
+    });
+    window.addEventListener('keyup', e => { 
+        if(e.key==='ArrowLeft') keys.left=false; if(e.key==='ArrowRight') keys.right=false; if(e.key==='Shift') keys.shift=false;
+    });
+
+    // 🌟 關卡開始儀式
+    window.startLevel = async (idx) => {
+        if (!audioCtx) audioCtx = new AudioContext();
+        currentDiff = parseFloat(document.querySelector('input[name="diff"]:checked').value);
+        document.getElementById('mainMenu').classList.add('hidden');
         
-        const count = document.getElementById('countdownOverlay');
-        count.classList.remove('hidden');
+        isPlaying = false; isPaused = false;
+        objects = []; currentLevel = idx; currentCharIdx = 0; timeBonus = 0; combo = 0;
+        document.getElementById('levelDisplay').innerText = `關卡: ${idx + 1}/4`;
+        
+        const co = document.getElementById('countdownDisplay');
+        co.classList.remove('hidden');
         const steps = [`第 ${idx+1} 關`, "READY?", "3", "2", "1", "GO!"];
         for (let s of steps) {
-            count.innerText = s;
-            await new Promise(r => setTimeout(r, 650));
+            co.innerText = s;
+            playB(s==="GO!"?800:440, 0.1);
+            await new Promise(r => setTimeout(r, 700));
         }
-        count.classList.add('hidden');
+        co.classList.add('hidden');
         
         startTime = Date.now();
         isPlaying = true;
         updateUI();
         gameLoop();
+    };
+
+    let lastRemain = 19.62;
+    function gameLoop() {
+        if (!isPlaying || isPaused) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const remain = Math.max(0, 19.62 + timeBonus - (Date.now() - startTime)/1000);
+        lastRemain = remain;
+        const timeEl = document.getElementById('timeDisplay');
+        timeEl.innerText = `${remain.toFixed(2)}s`;
+        
+        // 緊張音效
+        if (remain < 3.0 && Math.floor(remain * 10) % 10 === 0) { 
+            timeEl.style.color = 'var(--accent)'; playB(1200, 0.05, 0.02); 
+        } else { timeEl.style.color = 'white'; }
+
+        if (remain <= 0) { isPlaying = false; alert("時間到！重試該關。"); startLevel(currentLevel); return; }
+
+        // 移動
+        const spd = keys.shift ? canvas.width * 0.035 : canvas.width * 0.007;
+        if (keys.left) player.x -= spd; if (keys.right) player.x += spd;
+        player.x = Math.max(30, Math.min(canvas.width-30, player.x));
+
+        // 畫蘋果
+        ctx.font = "60px Arial"; ctx.textAlign = "center";
+        if (combo >= 5) { ctx.shadowBlur = 25; ctx.shadowColor = "var(--gold)"; }
+        ctx.fillText(combo>=5?"🌟":"🍎", player.x, player.y);
+        ctx.shadowBlur = 0;
+
+        // 物件
+        for (let i = objects.length - 1; i >= 0; i--) {
+            const o = objects[i]; o.y += o.speed;
+            ctx.font = "bold 40px Arial";
+            ctx.fillStyle = (o.char === formulas[currentLevel][currentCharIdx]) ? "var(--gold)" : "white";
+            ctx.fillText(o.char, o.x, o.y);
+
+            if (Math.abs(player.x - o.x) < 45 && Math.abs(player.y - o.y) < 45) {
+                catchObj(o); objects.splice(i, 1);
+            } else if (o.y > canvas.height + 50) objects.splice(i, 1);
+        }
+
+        if (Math.random() < 0.06) spawn();
+        requestAnimationFrame(gameLoop);
+    }
+
+    function spawn() {
+        const f = formulas[currentLevel];
+        let char = (Math.random() < 0.65) ? f[currentCharIdx] : (Math.random()<0.1?'⏰':'X');
+        objects.push({ char, x: Math.random()*canvas.width, y: -50, speed: 4 + Math.random()*3 });
+    }
+
+    function catchObj(o) {
+        if (o.char === '⏰') { timeBonus += 3; msg("+3s", "var(--gold)"); playB(900, 0.1); return; }
+        if (o.char === formulas[currentLevel][currentCharIdx]) {
+            currentCharIdx++; combo++; timeBonus += 0.5;
+            msg("+0.5s", "#2ecc71");
+            playB(combo>=5?1000:600, 0.08);
+            if (currentCharIdx >= formulas[currentLevel].length) {
+                isPlaying = false; levelTimes[currentLevel] = (Date.now()-startTime)/1000;
+                showLevelClear();
+            } else updateUI();
+        } else {
+            combo = 0; timeBonus -= 1.5; msg("-1.5s", "var(--accent)"); playB(150, 0.2);
+            if (currentDiff >= 19.62) { currentCharIdx = 0; updateUI(); }
+        }
+    }
+
+    function msg(t, c) {
+        const d = document.createElement('div'); d.className = 'float-msg'; d.innerText = t; d.style.color = c;
+        d.style.left = player.x + 'px'; d.style.top = player.y - 40 + 'px';
+        document.getElementById('msgContainer').appendChild(d);
+        setTimeout(() => d.remove(), 1000);
     }
 
     function updateUI() {
@@ -140,75 +290,42 @@
         document.getElementById('targetEquation').innerHTML = h;
     }
 
-    function gameLoop() {
-        if (!isPlaying) return;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const remain = Math.max(0, 19.62 + timeBonus - (Date.now() - startTime)/1000); // 🌟 19.62s 開局
-        document.getElementById('timeDisplay').innerText = `剩餘: ${remain.toFixed(2)}s`;
-        
-        if (remain <= 0) { isPlaying = false; alert("時間到！"); startLevel(currentLevel); return; }
-
-        const micro = canvas.width * 0.009, fast = canvas.width * 0.04;
-        if (controlState.fastLeft) player.x -= fast; else if (controlState.left) player.x -= micro;
-        if (controlState.fastRight) player.x += fast; else if (controlState.right) player.x += micro;
-        player.x = Math.max(30, Math.min(canvas.width - 30, player.x));
-
-        ctx.font = "55px Arial"; ctx.textAlign = "center"; ctx.fillText("🍎", player.x, player.y);
-
-        for (let i = objects.length - 1; i >= 0; i--) {
-            const o = objects[i]; o.y += o.speed;
-            ctx.font = "bold 38px Arial"; ctx.fillStyle = (o.char === formulas[currentLevel][currentCharIdx]) ? "#f1c40f" : "white";
-            ctx.fillText(o.char, o.x, o.y);
-            if (Math.abs(player.x - o.x) < 40 && Math.abs(player.y - o.y) < 40) {
-                handleCatch(o); objects.splice(i, 1);
-            } else if (o.y > canvas.height + 50) objects.splice(i, 1);
-        }
-
-        if (Math.random() < 0.06) {
-            const f = formulas[currentLevel];
-            let char = (Math.random() < 0.65) ? f[currentCharIdx] : 'X'; // 🌟 65% 正確率，讓干擾項出現
-            if (Math.random() < 0.05) char = '⏰';
-            objects.push({ char, x: Math.random()*(canvas.width-40)+20, y: -50, speed: 4 + Math.random()*3 });
-        }
-        requestAnimationFrame(gameLoop);
-    }
-
-    function handleCatch(o) {
-        if (o.char === '⏰') { timeBonus += 3; return; }
-        if (o.char === formulas[currentLevel][currentCharIdx]) {
-            currentCharIdx++; timeBonus += 0.5;
-            if (currentCharIdx >= formulas[currentLevel].length) {
-                isPlaying = false;
-                levelTimes[currentLevel] = (Date.now() - startTime) / 1000;
-                showLevelClear();
-            } else updateUI();
-        } else {
-            if (currentDiff >= 19.62) { currentCharIdx = 0; updateUI(); }
-            else timeBonus -= 1.5;
-        }
-    }
-
     function showLevelClear() {
-        objects = []; // 🌟 核心修正：過關立即清理
-        const overlay = document.getElementById('levelClearOverlay');
-        document.getElementById('stageTimeText').innerText = `本關用時: ${levelTimes[currentLevel].toFixed(2)}s`;
-        overlay.classList.remove('hidden');
-        document.getElementById('nextLevelBtn').onclick = () => {
-            overlay.classList.add('hidden');
-            if (currentLevel < 3) startLevel(currentLevel + 1); else showFinal();
-        };
+        const ov = document.getElementById('levelClearOverlay'); // 借用暫停或結算邏輯
+        playB(800, 0.1); playB(1000, 0.2); // 簡單勝利音
+        if (currentLevel < 3) {
+            const btn = document.createElement('button'); btn.className = 'btn-main'; btn.innerText = '下一關';
+            btn.onclick = () => { this.remove(); startLevel(currentLevel + 1); };
+            // 這裡為了簡化 code，直接顯示 alert 後下一關
+            alert(`關卡 ${currentLevel+1} 完成！耗時: ${levelTimes[currentLevel].toFixed(2)}s`);
+            startLevel(currentLevel + 1);
+        } else showFinal();
     }
 
-    function showFinal() {
-        document.getElementById('finalOverlay').classList.remove('hidden');
-        let total = 0;
-        let html = "<ul style='list-style:none; padding:0;'>";
-        levelTimes.forEach((t, i) => { total += t; html += `<li>關卡 ${i+1}: ${t.toFixed(2)}s</li>`; });
-        html += `</ul><h2 style='color:var(--accent)'>總成績: ${total.toFixed(2)}s</h2>`;
-        document.getElementById('finalStats').innerHTML = html;
+    async function showFinal() {
+        const ov = document.getElementById('resultOverlay'); ov.classList.remove('hidden');
+        let total = 0; const tbl = document.getElementById('statsTable'); tbl.innerHTML = "";
+        levelTimes.forEach((t, i) => { total += t; tbl.innerHTML += `<tr><td>關卡 ${i+1}</td><td>${t.toFixed(2)}s</td></tr>`; });
+        document.getElementById('totalScoreText').innerText = `總成績：${total.toFixed(2)}s`;
+        
+        // 勝利大合奏
+        [600, 800, 1000, 1200].forEach((f, i) => setTimeout(() => playB(f, 0.2), i*150));
+
         const name = document.getElementById('playerName').value || "ANONYMOUS";
+        const gameUrl = window.location.href;
+        document.getElementById('qrcode').src = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(gameUrl)}`;
+        document.getElementById('waShare').onclick = () => {
+            const txt = `🍎 我在「蘋果的考驗」中拿到 ${total.toFixed(2)}s 成績！挑戰連結：${gameUrl}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`);
+        };
         addDoc(collection(db, "physics_leaderboard"), { name, totalTime: total.toFixed(2), compositeScore: 1000000-Math.floor(total*100) });
     }
+
+    window.exitToHome = () => {
+        document.getElementById('resultOverlay').classList.add('hidden');
+        document.getElementById('quoteOverlay').classList.remove('hidden');
+        setTimeout(() => location.reload(), 4000);
+    };
 </script>
 </body>
 </html>

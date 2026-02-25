@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 V0.6.6.10</title>
+<title>蘋果的考驗 V0.6.6.11</title>
 <style>
     :root { --accent: #e74c3c; --gold: #f1c40f; --bg: #0d0d0d; --cert-bg: #1a1a1a; }
     * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
@@ -54,7 +54,7 @@
     </div>
 
     <div id="equationHeader"><div id="targetEquation">載入中...</div></div>
-    <div id="countdownOverlay" class="hidden" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:60px; font-weight:bold; color:var(--accent); z-index:300; text-align:center;"></div>
+    <div id="countdownOverlay" class="hidden" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:clamp(40px, 8vw, 60px); font-weight:bold; color:var(--accent); z-index:300; text-align:center; white-space:nowrap;"></div>
     <div id="msgContainer"></div>
     <canvas id="gameCanvas"></canvas>
 
@@ -67,7 +67,9 @@
 
     <div id="mainMenu" class="overlay">
         <h1 style="color:var(--accent); font-size:42px; margin:0;">🍎 蘋果的考驗</h1>
-        <p style="color:var(--gold); font-style: italic;">「研習物理，需心無旁鶩。」</p>
+        <div style="font-size:12px; color:rgba(255,255,255,0.3); letter-spacing:2px; margin-top:5px; margin-bottom:15px; font-family:monospace;">VERSION 0.6.6.11</div>
+        
+        <p style="color:var(--gold); font-style: italic; margin-top:0;">「研習物理，需心無旁鶩。」</p>
         <input type="text" id="playerName" placeholder="你的名字" maxlength="10" style="width:220px; padding:12px; border-radius:10px; text-align:center; font-size:18px; margin:15px 0; border:1px solid #444; background:#222; color:white;">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; width:90%; max-width:320px; margin:10px 0;">
             <label><input type="radio" name="diff" value="0" checked> 難度 0</label>
@@ -125,8 +127,11 @@
         <button class="btn-apple" style="background:#34495e;" onclick="window.goToEndGameLeaderboard()">查看排行榜</button>
     </div>
 
-    <div id="quoteOverlay" class="overlay hidden" style="justify-content:center; padding-top:0;">
+    <div id="quoteOverlay" class="overlay hidden" style="justify-content:center; padding-top:0; position:relative;">
         <div style="font-size:22px; color:var(--gold); letter-spacing:4px; line-height:2.2; text-align:center;">「研習物理，需心無旁鶩。」<br>「嬉戲之時，莫忘探索真理。」</div>
+        <div style="position:absolute; bottom:30px; font-size:11px; color:rgba(255,255,255,0.3); letter-spacing:2px; font-family:monospace; text-align:center;">
+            TMCSS PHYSICS • RL • FEB-2026
+        </div>
     </div>
 </div>
 
@@ -220,9 +225,7 @@
                 let rank = 1;
                 snap.forEach(doc => {
                     const data = doc.data();
-                    // 🌟 修正 1：名字顯示長度改為 10
                     const dispName = data.name ? data.name.substring(0,10) : '無名';
-                    // 🌟 確保時間顯示為數字格式
                     html += `<tr><td style="padding:6px 0;">${rank}</td><td>${dispName}</td><td>${Number(data.totalTime).toFixed(2)}s</td><td>${data.difficulty}</td></tr>`;
                     rank++;
                 });
@@ -253,7 +256,15 @@
         document.getElementById('levelDisplay').innerText = `第 ${idx + 1} 關`;
         updateUI();
         const cd = document.getElementById('countdownOverlay'); cd.classList.remove('hidden');
-        for (let s of [`第 ${idx+1} 關`, "READY?", "3", "2", "1", "GO!"]) { cd.innerText = s; playSound(440, 0.2); await new Promise(r => setTimeout(r, 650)); }
+        
+        // 🌟 微調2: 加入公式預覽的儀式感流程
+        const eqString = formulas[idx].join(''); 
+        for (let s of [`第 ${idx+1} 關`, eqString, "READY?", "3", "2", "1", "GO!"]) { 
+            cd.innerText = s; 
+            playSound(440, 0.2); 
+            await new Promise(r => setTimeout(r, 650)); 
+        }
+        
         cd.classList.add('hidden'); startTime = Date.now(); isPlaying = true; gameLoop();
     }
 
@@ -369,8 +380,6 @@
             const scores = snap.docs.map(d => parseFloat(d.data().totalTime));
             if (scores.length > 0 && total < scores[0]) rankText = "牛頓接班人";
             else if (scores.length < 10 || total < scores[scores.length-1]) rankText = "物理天才";
-            
-            // 🌟 修正 2：確保儲存至 Firebase 的時間格式為 Number (parseFloat)
             await addDoc(collection(db, "physics_leaderboard"), { name, totalTime: parseFloat(total.toFixed(2)), difficulty: currentDiff, timestamp: new Date() });
         } catch(e) {}
         document.getElementById('rankLabel').innerText = rankText;
@@ -384,6 +393,16 @@
         document.getElementById('resultOverlay').classList.add('hidden'); 
         document.getElementById('leaderboardOverlay').classList.add('hidden'); 
         document.getElementById('quoteOverlay').classList.remove('hidden'); 
+        
+        // 🌟 微調3: 播放 C大調琶音 (無版權沉澱旋律)，將 combo 設為 0 以防走音
+        combo = 0;
+        if (audioCtx && !isMuted) {
+            const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+            notes.forEach((freq, i) => {
+                setTimeout(() => playSound(freq, 1.5, 'sine'), i * 600);
+            });
+        }
+        
         setTimeout(() => location.reload(), 4500); 
     };
     

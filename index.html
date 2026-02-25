@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 V0.6.6.11</title>
+<title>蘋果的考驗 V0.6.6.16</title>
 <style>
     :root { --accent: #e74c3c; --gold: #f1c40f; --bg: #0d0d0d; --cert-bg: #1a1a1a; }
     * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
     body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', Arial, sans-serif; overflow: hidden; touch-action: none; position: fixed; width: 100%; height: 100%; }
     #gameContainer { position: relative; width: 100vw; height: 100vh; overflow: hidden; background: #000; }
-    canvas { display: block; width: 100%; height: 100%; }
+    canvas { display: block; width: 100%; height: 100%; z-index: 10; }
 
     /* UI 頂部 */
     #ui { position: absolute; top: 12px; left: 15px; right: 15px; display: flex; justify-content: space-between; align-items: center; z-index: 50; pointer-events: none; }
@@ -22,6 +22,9 @@
     #targetEquation { font-size: clamp(14px, 4.5vw, 28px); font-weight: bold; color: var(--gold); background: rgba(0,0,0,0.85); padding: 10px 15px; border-radius: 12px; display: inline-block; min-width: 85%; border: 1px solid rgba(255,255,255,0.1); }
     .next-char { color: #fff; text-decoration: underline; text-underline-offset: 6px; animation: blink 0.8s infinite; }
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* 公式預告的淡入淡出動畫 (3.5秒) */
+    @keyframes fadeInOut { 0% { opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }
 
     /* 控制器 */
     #controls { position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; z-index: 200; pointer-events: none; }
@@ -39,6 +42,9 @@
     .certificate { background: var(--cert-bg); border: 4px double var(--gold); padding: 20px; border-radius: 15px; width: 95%; max-width: 340px; margin: 10px 0; box-shadow: 0 0 25px rgba(241, 196, 15, 0.4); }
     .float-msg { position: absolute; pointer-events: none; font-weight: bold; animation: floatUp 1s forwards; z-index: 60; font-size: 24px; text-shadow: 2px 2px 4px black; }
     @keyframes floatUp { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(-60px); } }
+
+    /* 金句背景與圖層，保證覆蓋一切 */
+    #quoteOverlay { background: #000; z-index: 500; }
 </style>
 </head>
 <body oncontextmenu="return false;">
@@ -67,7 +73,7 @@
 
     <div id="mainMenu" class="overlay">
         <h1 style="color:var(--accent); font-size:42px; margin:0;">🍎 蘋果的考驗</h1>
-        <div style="font-size:12px; color:rgba(255,255,255,0.3); letter-spacing:2px; margin-top:5px; margin-bottom:15px; font-family:monospace;">VERSION 0.6.6.11</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.3); letter-spacing:2px; margin-top:5px; margin-bottom:15px; font-family:monospace;">VERSION 0.6.6.16</div>
         
         <p style="color:var(--gold); font-style: italic; margin-top:0;">「研習物理，需心無旁鶩。」</p>
         <input type="text" id="playerName" placeholder="你的名字" maxlength="10" style="width:220px; padding:12px; border-radius:10px; text-align:center; font-size:18px; margin:15px 0; border:1px solid #444; background:#222; color:white;">
@@ -115,6 +121,13 @@
         <button class="btn-apple" id="nextLevelBtn" style="opacity:0; transition: opacity 0.5s;">繼續考驗</button>
     </div>
 
+    <div id="summaryOverlay" class="overlay hidden">
+        <h2 style="color:var(--gold); margin-top:50px;">實驗數據總結</h2>
+        <div id="summaryContent" style="background:rgba(255,255,255,0.05); padding:20px; border-radius:15px; margin:20px 0; width:80%; max-width:300px; font-size:18px; line-height:1.8;">
+            </div>
+        <button class="btn-apple" onclick="window.showFinal()">生成成就證書</button>
+    </div>
+
     <div id="resultOverlay" class="overlay hidden">
         <div class="certificate">
             <div id="rankLabel" style="font-size: 20px; color: var(--accent); font-weight: bold; border: 1px solid var(--accent); display: inline-block; padding: 2px 12px; border-radius: 5px;">物理學霸</div>
@@ -127,9 +140,9 @@
         <button class="btn-apple" style="background:#34495e;" onclick="window.goToEndGameLeaderboard()">查看排行榜</button>
     </div>
 
-    <div id="quoteOverlay" class="overlay hidden" style="justify-content:center; padding-top:0; position:relative;">
+    <div id="quoteOverlay" class="overlay hidden" style="justify-content:center; padding-top:0;">
         <div style="font-size:22px; color:var(--gold); letter-spacing:4px; line-height:2.2; text-align:center;">「研習物理，需心無旁鶩。」<br>「嬉戲之時，莫忘探索真理。」</div>
-        <div style="position:absolute; bottom:30px; font-size:11px; color:rgba(255,255,255,0.3); letter-spacing:2px; font-family:monospace; text-align:center;">
+        <div style="position:absolute; bottom:30px; left:0; right:0; font-size:11px; color:rgba(255,255,255,0.3); letter-spacing:2px; font-family:monospace; text-align:center;">
             TMCSS PHYSICS • RL • FEB-2026
         </div>
     </div>
@@ -239,6 +252,22 @@
         }
     };
 
+    // 🌟 V0.6.6.16: IG 複製功能優化，加入溫馨提示
+    window.copyToIG = () => {
+        let total = 0; levelTimes.forEach(t => total += t);
+        const name = document.getElementById('certPlayerName').innerText;
+        const rank = document.getElementById('rankLabel').innerText;
+        const diff = document.getElementById('certDiff').innerText;
+        
+        const txt = `🍎 【蘋果的考驗】物理極限挑戰！\n\n🎓 學霸：${name}\n🏆 稱號：${rank}\n⏱ 總時間：${total.toFixed(2)}s\n⚙️ 難度：${diff}\n\n你都嚟挑戰下，爭奪「牛頓接班人」啦！💪\n👉 立即遊玩：https://phyrl.github.io/challenge981/`;
+        
+        navigator.clipboard.writeText(txt).then(() => {
+            alert("✅ 成績與連結已複製！\n\n📌 提示：\n- 分享至 WhatsApp 會自動變成連結\n- 分享至 IG Story 請使用「連結 (Link)」貼紙加入網址！");
+        }).catch(() => {
+            alert("複製失敗，請檢查瀏覽器權限或手動截圖。");
+        });
+    };
+
     window.startGame = () => { 
         levelTimes = [0,0,0,0]; 
         endGameFlow = false;
@@ -255,11 +284,22 @@
         document.getElementById('transitionApple').classList.remove('apple-active');
         document.getElementById('levelDisplay').innerText = `第 ${idx + 1} 關`;
         updateUI();
-        const cd = document.getElementById('countdownOverlay'); cd.classList.remove('hidden');
+        const cd = document.getElementById('countdownOverlay');
+        cd.classList.remove('hidden');
         
-        // 🌟 微調2: 加入公式預覽的儀式感流程
-        const eqString = formulas[idx].join(''); 
-        for (let s of [`第 ${idx+1} 關`, eqString, "READY?", "3", "2", "1", "GO!"]) { 
+        cd.innerText = `第 ${idx+1} 關`;
+        playSound(440, 0.2); 
+        await new Promise(r => setTimeout(r, 650)); 
+        
+        let eqStr = formulas[idx].map(c => (c==='='||c==='+') ? ` ${c} ` : c).join('');
+        cd.innerText = eqStr;
+        cd.style.animation = 'fadeInOut 3.5s forwards';
+        playSound(523.25, 0.5); 
+        await new Promise(r => setTimeout(r, 3500));
+        cd.style.animation = 'none'; 
+        cd.style.opacity = '1';
+        
+        for (let s of ["READY?", "3", "2", "1", "GO!"]) { 
             cd.innerText = s; 
             playSound(440, 0.2); 
             await new Promise(r => setTimeout(r, 650)); 
@@ -351,6 +391,7 @@
         const btn = document.getElementById('nextLevelBtn');
         overlay.classList.remove('hidden');
         document.getElementById('stageTimeSummary').innerText = `累積耗時: ${levelTimes[currentLevel].toFixed(2)}s`;
+        
         if (currentLevel < 3) {
             document.getElementById('transMsg').innerText = "關卡完成！";
             document.getElementById('congratsText').innerText = "";
@@ -359,17 +400,39 @@
         } else {
             document.getElementById('transMsg').innerText = "🏆 大獲全勝！";
             document.getElementById('congratsText').innerText = "你是真正的牛頓接班人！";
-            btn.innerText = "生成成就證書";
-            btn.onclick = () => showFinal();
+            btn.innerText = "查看數據總結";
+            btn.onclick = () => window.showSummary();
         }
+        
         btn.style.opacity = "0";
-        setTimeout(() => { apple.classList.add('apple-active'); }, 1500);
+        setTimeout(() => { 
+            apple.classList.add('apple-active'); 
+            combo = 0; 
+            if (audioCtx && !isMuted) {
+                const notes = [261.63, 329.63, 392.00, 523.25];
+                notes.forEach((freq, i) => { setTimeout(() => playSound(freq, 0.5, 'sine'), i * 150); });
+            }
+        }, 1500);
         setTimeout(() => { btn.style.opacity = "1"; }, 2500);
     }
 
-    async function showFinal() {
-        endGameFlow = true; 
+    window.showSummary = () => {
         document.getElementById('transitionOverlay').classList.add('hidden');
+        document.getElementById('summaryOverlay').classList.remove('hidden');
+        let html = '<div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">';
+        let total = 0;
+        levelTimes.forEach((t, i) => {
+            html += `<div style="text-align:right;">第 ${i+1} 關：</div><div style="text-align:left; color:var(--gold); font-weight:bold;">${t.toFixed(2)}s</div>`;
+            total += t;
+        });
+        html += `</div><hr style="border-color:#444; margin:15px 0;">`;
+        html += `<div style="text-align:center;"><span style="font-size:16px;">總耗時</span><br><strong style="color:var(--accent); font-size:28px;">${total.toFixed(2)}s</strong></div>`;
+        document.getElementById('summaryContent').innerHTML = html;
+    };
+
+    window.showFinal = async () => {
+        endGameFlow = true; 
+        document.getElementById('summaryOverlay').classList.add('hidden');
         document.getElementById('resultOverlay').classList.remove('hidden');
         let total = 0; levelTimes.forEach(t => total += t);
         const name = document.getElementById('playerName').value || "ANONYMOUS";
@@ -392,18 +455,20 @@
     window.exitToHome = () => { 
         document.getElementById('resultOverlay').classList.add('hidden'); 
         document.getElementById('leaderboardOverlay').classList.add('hidden'); 
+        
+        document.getElementById('gameCanvas').style.visibility = 'hidden';
+        document.getElementById('ui').style.visibility = 'hidden';
+        document.getElementById('equationHeader').style.visibility = 'hidden';
+
         document.getElementById('quoteOverlay').classList.remove('hidden'); 
         
-        // 🌟 微調3: 播放 C大調琶音 (無版權沉澱旋律)，將 combo 設為 0 以防走音
         combo = 0;
         if (audioCtx && !isMuted) {
-            const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
-            notes.forEach((freq, i) => {
-                setTimeout(() => playSound(freq, 1.5, 'sine'), i * 600);
-            });
+            const notes = [130.81, 164.81, 196.00, 261.63, 196.00, 164.81, 130.81, 164.81, 196.00, 261.63, 329.63, 261.63];
+            notes.forEach((freq, i) => { setTimeout(() => playSound(freq, 1.0, 'sine'), i * 300); });
         }
         
-        setTimeout(() => location.reload(), 4500); 
+        setTimeout(() => location.reload(), 9000); 
     };
     
     function msg(t, c) {

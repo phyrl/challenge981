@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>蘋果的考驗 V0.6.6.16</title>
+<title>蘋果的考驗 V0.6.6.17</title>
 <style>
     :root { --accent: #e74c3c; --gold: #f1c40f; --bg: #0d0d0d; --cert-bg: #1a1a1a; }
     * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
@@ -73,7 +73,7 @@
 
     <div id="mainMenu" class="overlay">
         <h1 style="color:var(--accent); font-size:42px; margin:0;">🍎 蘋果的考驗</h1>
-        <div style="font-size:12px; color:rgba(255,255,255,0.3); letter-spacing:2px; margin-top:5px; margin-bottom:15px; font-family:monospace;">VERSION 0.6.6.16</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.3); letter-spacing:2px; margin-top:5px; margin-bottom:15px; font-family:monospace;">VERSION 0.6.6.17</div>
         
         <p style="color:var(--gold); font-style: italic; margin-top:0;">「研習物理，需心無旁鶩。」</p>
         <input type="text" id="playerName" placeholder="你的名字" maxlength="10" style="width:220px; padding:12px; border-radius:10px; text-align:center; font-size:18px; margin:15px 0; border:1px solid #444; background:#222; color:white;">
@@ -136,7 +136,7 @@
             <div style="font-size:18px;">總時間：<span id="certTotalTime" style="color:var(--accent); font-weight:bold;"></span>s | 難度：<span id="certDiff"></span></div>
             <div style="margin-top:12px;"><img id="qrcode" src="" alt="QR" width="85" style="background:white; padding:4px; border-radius:5px;"></div>
         </div>
-        <button class="btn-apple" style="background:linear-gradient(45deg, #f09433, #bc1888);" onclick="window.copyToIG()">📋 複製成績分享 IG Story</button>
+        <button class="btn-apple" style="background:linear-gradient(45deg, #f09433, #bc1888);" onclick="window.copyToIG()">📋 複製成績分享戰績</button>
         <button class="btn-apple" style="background:#34495e;" onclick="window.goToEndGameLeaderboard()">查看排行榜</button>
     </div>
 
@@ -252,17 +252,18 @@
         }
     };
 
-    // 🌟 V0.6.6.16: IG 複製功能優化，加入溫馨提示
+    // 🌟 V0.6.6.17: 極簡文案與精準引導提示
     window.copyToIG = () => {
         let total = 0; levelTimes.forEach(t => total += t);
         const name = document.getElementById('certPlayerName').innerText;
         const rank = document.getElementById('rankLabel').innerText;
         const diff = document.getElementById('certDiff').innerText;
         
-        const txt = `🍎 【蘋果的考驗】物理極限挑戰！\n\n🎓 學霸：${name}\n🏆 稱號：${rank}\n⏱ 總時間：${total.toFixed(2)}s\n⚙️ 難度：${diff}\n\n你都嚟挑戰下，爭奪「牛頓接班人」啦！💪\n👉 立即遊玩：https://phyrl.github.io/challenge981/`;
+        // 極簡文案設計，保證低於 128 字元
+        const txt = `🍎 蘋果的考驗\n🎓 ${name} | 🏆 ${rank}\n⏱ ${total.toFixed(2)}s | ⚙️ 難度 ${diff}\n👉 挑機：https://phyrl.github.io/challenge981/`;
         
         navigator.clipboard.writeText(txt).then(() => {
-            alert("✅ 成績與連結已複製！\n\n📌 提示：\n- 分享至 WhatsApp 會自動變成連結\n- 分享至 IG Story 請使用「連結 (Link)」貼紙加入網址！");
+            alert("✅ 戰績與連結已複製！\n\n📌 分享小貼士：\n🔹 Teams / Threads：直接貼上即可點擊連結。\n🔹 IG Story：貼上文字後，請用「連結 (Link)」貼紙加入網址！");
         }).catch(() => {
             alert("複製失敗，請檢查瀏覽器權限或手動截圖。");
         });
